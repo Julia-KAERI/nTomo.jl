@@ -114,7 +114,6 @@ mutable struct TomoReader
     working_dir::String
     image_type::Symbol
     to_be_transposed::Bool
-    scale_down_factor::Int64
     crop_region::Union{Vector{Integer}, Nothing}
     norm_region::Union{Vector{Integer}, Nothing}
     
@@ -129,7 +128,6 @@ mutable struct TomoReader
         image_type = nothing,
         to_be_transposed::Bool = false,
         angle_step = 0.3,
-        scale_down_factor = 1, 
         crop_region = nothing,
         norm_region = nothing
         )
@@ -138,8 +136,6 @@ mutable struct TomoReader
         @assert instrument ∈ instruments
         @assert prod(isdir.([data_dir, white_dir, dark_dir, working_dir]))
         
-        scale_down_factor = round(Int64, scale_down_factor)
-        @assert scale_down_factor ∈ (1, 2, 3, 4, 5, 6, 7, 8)
     
         if image_type === nothing
             image_type = image_types[instrument]
@@ -157,7 +153,7 @@ mutable struct TomoReader
             @error "no dark file"
         end
     
-        return new(tomo_type, instrument, data_dir, datafiles, white_dir, whitefiles, dark_dir, darkfiles, working_dir, image_type, to_be_transposed, scale_down_factor)
+        return new(tomo_type, instrument, data_dir, datafiles, white_dir, whitefiles, dark_dir, darkfiles, working_dir, image_type, to_be_transposed)
     end
 end
 
@@ -170,7 +166,14 @@ function Base.show(io::IO, ::MIME"text/plain", tomo::TomoReader)
     println(io, r)
 end
 
-function tomoreaderview(tomo::TomoReader, angle_step::Real = 10.0, contrast::Real = 1.0, lw::Integer=5, resize_scale=1.0)
+function tomoreaderview(
+    tomo::TomoReader, 
+    angle_step::Real = 10.0, 
+    contrast::Real = 1.0, 
+    lw::Integer=5, 
+    resize_scale=1.0; 
+    threashold::Union{Real, Nothing}=nothing)
+    
     @assert 0.0 < contrast <= 1.0
 
     contrast = Float32(contrast)
@@ -187,15 +190,21 @@ function tomoreaderview(tomo::TomoReader, angle_step::Real = 10.0, contrast::Rea
             img += Float32.(read_nrimage(joinpath(tomo.data_dir, _fn)))
             Nimg += 1
             θ += angle_step
+            println(_fn, size(img))
         end
     end
 
-    img /= (maximum(img)/contrast)
+    if threashold === nothing 
+        img /= (maximum(img)/contrast)
+    else 
+        img /= (Float32(threashold)/contrast)
+        img[img .> 1.0f0] .= 1.0f0
+    end
         
     if tomo.to_be_transposed
         img = RGB.(img', img', img')
     else 
-        img = RGB.(img, img', img')
+        img = RGB.(img, img, img)
     end
 
     M, N = size(img)

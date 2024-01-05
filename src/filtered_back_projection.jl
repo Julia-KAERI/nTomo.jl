@@ -1,4 +1,4 @@
-using FFTW, CUDA
+using FFTW
 
 include("fourier_filter.jl")
 
@@ -53,23 +53,23 @@ function maincal_cpu(S, angles, ffilter, Ndet, center)
 end
 
 
-function maincal_cuda!(Sa, angles, x, Ndet, Im)
+# function maincal_cuda!(Sa, angles, x, Ndet, Im)
 
-    t = (blockIdx().x - 1) * blockDim().x + threadIdx().x
-    i = (blockIdx().y - 1) * blockDim().y + threadIdx().y
-    j = (blockIdx().z - 1) * blockDim().z + threadIdx().z
+#     t = (blockIdx().x - 1) * blockDim().x + threadIdx().x
+#     i = (blockIdx().y - 1) * blockDim().y + threadIdx().y
+#     j = (blockIdx().z - 1) * blockDim().z + threadIdx().z
 
-    nAngles = length(angles)
-    cosθ, sinθ = cos(angles[t]), sin(angles[t])
+#     nAngles = length(angles)
+#     cosθ, sinθ = cos(angles[t]), sin(angles[t])
 
-    rn = (x[i]*cosθ + x[j]*sinθ + 0.5)*(Ndet)
+#     rn = (x[i]*cosθ + x[j]*sinθ + 0.5)*(Ndet)
 
-    ind = round(Int64, rn)
-    if (ind > 0) && (ind<=Ndet) && (i≤ Ndet) && (j ≤ Ndet) && (t ≤ nAngles) 
-        CUDA.@atomic Im[i, j] += Sa[ind, t]
-    end
-    return nothing
-end
+#     ind = round(Int64, rn)
+#     if (ind > 0) && (ind<=Ndet) && (i≤ Ndet) && (j ≤ Ndet) && (t ≤ nAngles) 
+#         CUDA.@atomic Im[i, j] += Sa[ind, t]
+#     end
+#     return nothing
+# end
 
 
 function filtered_back_projection(sinogram, angles, center, filtername, mode=:cpu)
@@ -85,18 +85,20 @@ function filtered_back_projection(sinogram, angles, center, filtername, mode=:cp
     if mode == :cpu
         img = maincal_cpu(S, angles, ffilter, Ndet, center)
     else 
-        Sa = real(ifft(fft(CuArray(S), 1) .* repeat(CuArray(ffilter), 1, length(angles)), 1))[1:Ndet, :]
+        error("no cuda yet")
+
+        # Sa = real(ifft(fft(CuArray(S), 1) .* repeat(CuArray(ffilter), 1, length(angles)), 1))[1:Ndet, :]
 
 
-        Im = CUDA.zeros(Float32,(Ndet, Ndet))
+        # Im = CUDA.zeros(Float32,(Ndet, Ndet))
 
-        xx = CuArray(Float32.(range(-0.5, stop=0.5, length = Ndet) .+ (center/Ndet - 0.5)))
+        # xx = CuArray(Float32.(range(-0.5, stop=0.5, length = Ndet) .+ (center/Ndet - 0.5)))
 
-        nthreads = (8, 8, 8)
-        nsize = (length(angles), Ndet, Ndet)
-        nblocks = ceil.(Int, nsize .÷ nthreads)     
-        @cuda threads=nthreads blocks=nblocks maincal_cuda!(Sa, CuArray(angles), xx, Ndet, Im)
-        img = Im./(π*2*length(angles))
+        # nthreads = (8, 8, 8)
+        # nsize = (length(angles), Ndet, Ndet)
+        # nblocks = ceil.(Int, nsize .÷ nthreads)     
+        # @cuda threads=nthreads blocks=nblocks maincal_cuda!(Sa, CuArray(angles), xx, Ndet, Im)
+        # img = Im./(π*2*length(angles))
     end
 end
 

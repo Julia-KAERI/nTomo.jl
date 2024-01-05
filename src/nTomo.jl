@@ -12,6 +12,7 @@ include("tomoreader.jl")
 include("tomodata.jl")
 include("tomocor.jl")
 include("tomoview.jl")
+#include("tomofilter.jl")
 
 
 export read_nrimage,
@@ -24,6 +25,11 @@ export read_nrimage,
     filtered_back_projection,
     filtered_back_projection2,
     get_file_list_hanaro,
+    
+    IdentityFilter,
+    MedianFilter,
+    ThreasholdMedianFilter,
+
     TomoReader,
     set_crop_region,
     set_norm_region,

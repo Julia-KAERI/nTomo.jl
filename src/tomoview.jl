@@ -12,11 +12,15 @@ function img2gray(img::Matrix, contrast::Real = 1.0, resize_scale::Real = 1.0)
     end
 end
 
-function get_image(tomo::TomoReader, angle::Real=0.0, contrast::Real = 1.0, resize_scale::Real = 1.0)
+function get_image(tomo::TomoReader, angle::Real=0.0, contrast::Real = 1.0; 
+    threashold::Union{Real, Nothing}=nothing, resize_scale::Real = 1.0)
+    
     @assert 0 < contrast <= 1.0
     @assert 0.1 ≤ resize_scale ≤ 10.0
 
     contrast = Float32(contrast)
+    threashold = Float32(threashold)
+    ``
     ths = [th for (obj, th, fn) ∈ tomo.data_files if obj == 1]
     if length(ths) == 0 
         @error "No images for object=$object, angle=$angle"
@@ -25,7 +29,16 @@ function get_image(tomo::TomoReader, angle::Real=0.0, contrast::Real = 1.0, resi
     
     m = argmin(abs.(angle .- ths))
     img = Float32.(read_nrimage(joinpath(tomo.data_dir, (tomo.data_files[m])[3])))
-    img /= (maximum(img)/contrast)
+    thv = 1.0f0
+    if threashold === nothing
+        img /= maximum(img)/contrast
+    else 
+        img /= threashold/contrast
+        img[img.>1.0f0] .= 1.0f0
+    end
+    
+    
+
 
     if tomo.to_be_transposed
         img = Gray.(img')

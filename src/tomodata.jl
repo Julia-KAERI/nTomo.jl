@@ -1,5 +1,5 @@
 include("medianfilters.jl")
-
+include("tomofilter.jl")
 tomodata_process = (:dataread, :medianfiltering, :normalization, :sinogram, :pixel_normalization, :cor, :recon_fbp)
 reconstruction_method = (:recon_fbp, )
 # image_load=(:auto, :memory, :hdf5)
@@ -9,89 +9,91 @@ _Version = (0, 1)
 
 abstract type AbstractTomoData end
 
-struct TomoDataRaw <: AbstractTomoData
-    version
-    ths::Vector{Float32}
-    data::Array{Float32, 3}
-    white::Array{Float32, 3}
-    dark::Array{Float32, 3}
+# struct TomoDataRaw <: AbstractTomoData
+#     version
+#     ths::Vector{Float32}
+#     data::Array{Float32, 3}
+#     white::Array{Float32, 3}
+#     dark::Array{Float32, 3}
     
-    function TomoDataRaw(tomo::TomoReader, object)
-        ths = []
-        fns = []
+#     function TomoDataRaw(tomo::TomoReader, object)
+#         ths = []
+#         fns = []
         
-        for (obj, θ, fn) in tomo.data_files
-            if obj==object && θ₁ <= θ < θ₂
-                push!(ths, θ)
-                push!(fns, fn)
-            end
-        end
+#         for (obj, θ, fn) in tomo.data_files
+#             if obj==object && θ₁ <= θ < θ₂
+#                 push!(ths, θ)
+#                 push!(fns, fn)
+#             end
+#         end
 
-        ths = Float32.(ths)
+#         ths = Float32.(ths)
 
-        sdfactor = tomo.scale_down_factor
+#         sdfactor = tomo.scale_down_factor
 
-        if tomo.to_be_transposed
-            pdata = (Float32.(read_nrimage(joinpath(tomo.data_dir, fns[1]))))'
-        else 
-            pdata = Float32.(read_nrimage(joinpath(tomo.data_dir, fns[1])))
-        end 
+#         if tomo.to_be_transposed
+#             pdata = (Float32.(read_nrimage(joinpath(tomo.data_dir, fns[1]))))'
+#         else 
+#             pdata = Float32.(read_nrimage(joinpath(tomo.data_dir, fns[1])))
+#         end 
 
-        Ny, Nx = size(pdata)
+#         Ny, Nx = size(pdata)
         
-        data = Array{Float32}(undef, (length(fns), Ny, Nx))
-        white = Array{Float32}(undef, (length(tomo.white_files), Ny, Nx))
-        dark = Array{Float32}(undef, (length(tomo.dark_files), Ny, Nx))
+#         data = Array{Float32}(undef, (length(fns), Ny, Nx))
+#         white = Array{Float32}(undef, (length(tomo.white_files), Ny, Nx))
+#         dark = Array{Float32}(undef, (length(tomo.dark_files), Ny, Nx))
 
 
 
-        Threads.@threads for i ∈ eachindex(fns)
-            fn = fns[i]
-            if tomo.to_be_transposed
-                pdata = (Float32.(read_nrimage(joinpath(tomo.data_dir, fn))))'
-            else 
-                pdata = Float32.(read_nrimage(joinpath(tomo.data_dir, fn)))
-            end 
+#         Threads.@threads for i ∈ eachindex(fns)
+#             fn = fns[i]
+#             if tomo.to_be_transposed
+#                 pdata = (Float32.(read_nrimage(joinpath(tomo.data_dir, fn))))'
+#             else 
+#                 pdata = Float32.(read_nrimage(joinpath(tomo.data_dir, fn)))
+#             end 
             
-            if sdfactor > 1
-                data[i, :, :] = mean([pdata[i:sdfactor:Ny*sdfactor, j:sdfactor:Nx*sdfactor] for i ∈ 1:sdfactor for j ∈ 1:sdfactor ])     
-            else
-                data[i, :, :] = pdata[:,:]
-            end
-        end
+#             if sdfactor > 1
+#                 data[i, :, :] = mean([pdata[i:sdfactor:Ny*sdfactor, j:sdfactor:Nx*sdfactor] for i ∈ 1:sdfactor for j ∈ 1:sdfactor ])     
+#             else
+#                 data[i, :, :] = pdata[:,:]
+#             end
+#         end
 
-        for (i, fn) in enumerate(tomo.white_files)
-            if tomo.to_be_transposed
-                pdata = (Float32.(read_nrimage(joinpath(tomo.white_dir, fn))))'
-            else 
-                pdata = Float32.(read_nrimage(joinpath(tomo.white_dir, fn)))
-            end 
+#         for (i, fn) in enumerate(tomo.white_files)
+#             if tomo.to_be_transposed
+#                 pdata = (Float32.(read_nrimage(joinpath(tomo.white_dir, fn))))'
+#             else 
+#                 pdata = Float32.(read_nrimage(joinpath(tomo.white_dir, fn)))
+#             end 
 
-            if sdfactor > 1
-                white[i, :, :] = mean([pdata[i:sdfactor:Ny*sdfactor, j:sdfactor:Nx*sdfactor] for i ∈ 1:sdfactor for j ∈ 1:sdfactor ])     
-            else
-                white[i, :, :] = pdata[:,:]
-            end
-        end
+#             if sdfactor > 1
+#                 white[i, :, :] = mean([pdata[i:sdfactor:Ny*sdfactor, j:sdfactor:Nx*sdfactor] for i ∈ 1:sdfactor for j ∈ 1:sdfactor ])     
+#             else
+#                 white[i, :, :] = pdata[:,:]
+#             end
+#         end
         
-        for (i, fn) in enumerate(tomo.dark_files)
-            if tomo.to_be_transposed
-                pdata = (Float32.(read_nrimage(joinpath(tomo.dark_dir, fn))))'
-            else 
-                pdata = Float32.(read_nrimage(joinpath(tomo.dark_dir, fn)))
-            end 
+#         for (i, fn) in enumerate(tomo.dark_files)
+#             if tomo.to_be_transposed
+#                 pdata = (Float32.(read_nrimage(joinpath(tomo.dark_dir, fn))))'
+#             else 
+#                 pdata = Float32.(read_nrimage(joinpath(tomo.dark_dir, fn)))
+#             end 
 
-            if sdfactor > 1
-                dark[i, :, :] = mean([pdata[i:sdfactor:Ny*sdfactor, j:sdfactor:Nx*sdfactor] for i ∈ 1:sdfactor for j ∈ 1:sdfactor ])     
-            else
-                dark[i, :, :] = pdata[:,:]
-            end
-        end
+#             if sdfactor > 1
+#                 dark[i, :, :] = mean([pdata[i:sdfactor:Ny*sdfactor, j:sdfactor:Nx*sdfactor] for i ∈ 1:sdfactor for j ∈ 1:sdfactor ])     
+#             else
+#                 dark[i, :, :] = pdata[:,:]
+#             end
+#         end
             
-        prc = [:dataread]
-        return new(_Version, ths, data, white, dark, nothing, nothing, nothing, prc)
-    end
-end
+#         prc = [:dataread]
+#         return new(_Version, ths, data, white, dark, nothing, nothing, nothing, prc)
+#     end
+# end
+
+
 
 mutable struct TomoData <: AbstractTomoData
     version
@@ -105,32 +107,42 @@ mutable struct TomoData <: AbstractTomoData
     process
     cor
 
+
+
     function TomoData(
-        tomo::TomoReader, 
-        θ₁=0.0, 
-        θ₂=180.0,
-        medianfilter = true,
-        medianfilter_threashold::Real = 3.0,
-        medianfilter_kernelsize::Int64 = 5
+        tomo::TomoReader,
+        θ₁::Real = 0.0, 
+        θ₂::Real = 180.0,
+        imgfilters::Union{AbstractVector{<:AbstractTomoFilter}, Nothing} = nothing
         )
+
+        if imgfilters != Nothing 
+            kk = [f.ksize for f in imgfilters]
+            if all(x->x==kk[1], kk) === false 
+                error("Each of filters have the same size")
+            else 
+                noise_filter_size = kk[1]
+        
+            end
+        else 
+            imgfilters = [IdentityFilter(3), ]
+        end
+
         @assert isa(tomo.crop_region, Vector)
         @assert isa(tomo.norm_region, Vector)
         
-        @assert medianfilter_kernelsize > 1 && isodd(medianfilter_kernelsize)
-        @assert medianfilter_threashold > 1.0
-
-        ksize = medianfilter_kernelsize >> 1
-
-
         cx1, cx2 = tomo.crop_region[1], tomo.crop_region[3]
         cy1, cy2 = tomo.crop_region[2], tomo.crop_region[4]
 
         nx1, nx2 = tomo.norm_region[1], tomo.norm_region[3]
         ny1, ny2 = tomo.norm_region[2], tomo.norm_region[4]
 
-        @assert (cx2-cx1) > medianfilter_kernelsize &&  (cy2-cy1) > medianfilter_kernelsize
-        @assert (nx2-nx1) > medianfilter_kernelsize &&  (ny2-ny1) > medianfilter_kernelsize
+        @assert (cx2-cx1) > noise_filter_size &&  (cy2-cy1) > noise_filter_size
+        @assert (nx2-nx1) > noise_filter_size &&  (ny2-ny1) > noise_filter_size
         
+        # ksize ≠ filters size. 
+        ksize = (noise_filter_size >> 1)
+
         ths = []
         fns = []
         
@@ -147,10 +159,8 @@ mutable struct TomoData <: AbstractTomoData
         norm_white = 0.0f0
         norm_dark = 0.0f0
 
-        sdfactor = tomo.scale_down_factor
-
-        Nx0, Ny0 = cx2-cx1+1, cy2-cy1+1
-        Nx, Ny = floor(Int64, Nx0/sdfactor), floor(Int64, Ny0/sdfactor)
+        # filter size 를 고려하여 잘라내는 이미지 사이즈
+        Nx, Ny = cx2-cx1+1 + 2* ksize, cy2-cy1+1 + 2*ksize
 
         data = Array{Float32}(undef, (length(fns), Ny, Nx))
         white = Array{Float32}(undef, (length(tomo.white_files), Ny, Nx))
@@ -163,20 +173,20 @@ mutable struct TomoData <: AbstractTomoData
             else 
                 pdata = Float32.(read_nrimage(joinpath(tomo.data_dir, fn)))
             end 
-
-            if medianfilter
-                ndata = thresholdmedian(pdata[ny1-ksize:ny2+ksize, nx1-ksize:nx2+ksize], medianfilter_threashold, medianfilter_kernelsize)  
-                pdata = thresholdmedian(pdata[cy1-ksize:cy2+ksize, cx1-ksize:cx2+ksize], medianfilter_threashold, medianfilter_kernelsize)[ksize+1:end-ksize, ksize+1:end-ksize] 
-                # pdata = pdata[ksize+1:end-ksize, ksize+1:end-ksize] 
-            end
             
+
+            ndata = pdata[ny1-ksize:ny2+ksize, nx1-ksize:nx2+ksize]
+            pdata = pdata[cy1-ksize:cy2+ksize, cx1-ksize:cx2+ksize]
+            
+            for i in eachindex(imgfilters)
+                ndata = ndata |> imgfilters[i]
+                pdata = pdata |> imgfilters[i]
+            end
+
             norm_data[i] = sum(ndata[ksize+1:end-ksize])
             
-            if sdfactor > 1
-                data[i, :, :] = mean([pdata[i:sdfactor:Ny*sdfactor, j:sdfactor:Nx*sdfactor] for i ∈ 1:sdfactor for j ∈ 1:sdfactor ])     
-            else
-                data[i, :, :] = pdata[:,:]
-            end
+            data[i, :, :] = pdata[:,:]
+        
         end
 
         for (i, fn) in enumerate(tomo.white_files)
@@ -185,19 +195,19 @@ mutable struct TomoData <: AbstractTomoData
             else 
                 pdata = Float32.(read_nrimage(joinpath(tomo.white_dir, fn)))
             end 
-
-            if medianfilter
-                ndata = thresholdmedian(pdata[ny1-ksize:ny2+ksize, nx1-ksize:nx2+ksize], medianfilter_threashold, medianfilter_kernelsize)  
-                pdata = thresholdmedian(pdata[cy1-ksize:cy2+ksize, cx1-ksize:cx2+ksize], medianfilter_threashold, medianfilter_kernelsize)[ksize+1:end-ksize, ksize+1:end-ksize] 
-                # pdata = pdata[ksize+1:end-ksize, ksize+1:end-ksize] 
+            
+            ndata = pdata[ny1-ksize:ny2+ksize, nx1-ksize:nx2+ksize]
+            pdata = pdata[cy1-ksize:cy2+ksize, cx1-ksize:cx2+ksize]
+            
+            for i in eachindex(imgfilters)
+                ndata = ndata |> imgfilters[i]
+                pdata = pdata |> imgfilters[i]
             end
 
             norm_white += sum(ndata[ksize+1:end-ksize])
-            if sdfactor > 1
-                white[i, :, :] = mean([pdata[i:sdfactor:Ny*sdfactor, j:sdfactor:Nx*sdfactor] for i ∈ 1:sdfactor for j ∈ 1:sdfactor ])     
-            else
-                white[i, :, :] = pdata[:,:]
-            end
+            
+            white[i, :, :] = pdata[:,:]
+            
         end
             
         norm_white /= length(tomo.white_files)
@@ -208,32 +218,158 @@ mutable struct TomoData <: AbstractTomoData
             else 
                 pdata = Float32.(read_nrimage(joinpath(tomo.dark_dir, fn)))
             end 
-
-            if medianfilter
-                ndata = thresholdmedian(pdata[ny1-ksize:ny2+ksize, nx1-ksize:nx2+ksize], medianfilter_threashold, medianfilter_kernelsize)  
-                pdata = thresholdmedian(pdata[cy1-ksize:cy2+ksize, cx1-ksize:cx2+ksize], medianfilter_threashold, medianfilter_kernelsize)[ksize+1:end-ksize, ksize+1:end-ksize] 
-                # pdata = pdata[ksize+1:end-ksize, ksize+1:end-ksize] 
+ 
+            ndata = pdata[ny1-ksize:ny2+ksize, nx1-ksize:nx2+ksize]
+            pdata = pdata[cy1-ksize:cy2+ksize, cx1-ksize:cx2+ksize]
+            
+            for i in eachindex(imgfilters)
+                ndata = ndata |> imgfilters[i]
+                pdata = pdata |> imgfilters[i]
             end
             
             norm_dark += sum(ndata[ksize+1:end-ksize])
-
-            if sdfactor > 1
-                dark[i, :, :] = mean([pdata[i:sdfactor:Ny*sdfactor, j:sdfactor:Nx*sdfactor] for i ∈ 1:sdfactor for j ∈ 1:sdfactor ])     
-            else
-                dark[i, :, :] = pdata[:,:]
-            end
+       
+            dark[i, :, :] = pdata[:,:]
         end
             
         norm_dark /= length(tomo.white_files)
 
-        if medianfilter
-            prc = [:dataread, :medianfiltering, ]
-        else
-            prc = [:dataread]
-        end
+        
+        prc = [:dataread]
 
-        return new(_Version, ths, data, white, dark, norm_data, norm_white, norm_dark, prc, [0.0, 0.0])
+        return new(_Version, ths, data, white, dark, noise_filter_size, norm_data, norm_white, norm_dark, prc, [0.0, 0.0])
     end
+
+
+    # function TomoData(
+    #     tomo::TomoReader, 
+    #     θ₁=0.0, 
+    #     θ₂=180.0,
+    #     medianfilter = true,
+    #     medianfilter_threashold::Real = 3.0,
+    #     medianfilter_kernelsize::Int64 = 5
+    #     )
+    #     @assert isa(tomo.crop_region, Vector)
+    #     @assert isa(tomo.norm_region, Vector)
+        
+    #     @assert medianfilter_kernelsize > 1 && isodd(medianfilter_kernelsize)
+    #     @assert medianfilter_threashold > 1.0
+
+    #     ksize = medianfilter_kernelsize >> 1
+
+
+    #     cx1, cx2 = tomo.crop_region[1], tomo.crop_region[3]
+    #     cy1, cy2 = tomo.crop_region[2], tomo.crop_region[4]
+
+    #     nx1, nx2 = tomo.norm_region[1], tomo.norm_region[3]
+    #     ny1, ny2 = tomo.norm_region[2], tomo.norm_region[4]
+
+    #     @assert (cx2-cx1) > medianfilter_kernelsize &&  (cy2-cy1) > medianfilter_kernelsize
+    #     @assert (nx2-nx1) > medianfilter_kernelsize &&  (ny2-ny1) > medianfilter_kernelsize
+        
+    #     ths = []
+    #     fns = []
+        
+    #     for (obj, θ, fn) in tomo.data_files
+    #         if θ₁ <= θ < θ₂
+    #             push!(ths, θ)
+    #             push!(fns, fn)
+    #         end
+    #     end
+
+    #     ths = Float32.(ths)
+
+    #     norm_data = zero(ths)
+    #     norm_white = 0.0f0
+    #     norm_dark = 0.0f0
+
+    #     sdfactor = tomo.scale_down_factor
+
+    #     Nx0, Ny0 = cx2-cx1+1, cy2-cy1+1
+    #     Nx, Ny = floor(Int64, Nx0/sdfactor), floor(Int64, Ny0/sdfactor)
+
+    #     data = Array{Float32}(undef, (length(fns), Ny, Nx))
+    #     white = Array{Float32}(undef, (length(tomo.white_files), Ny, Nx))
+    #     dark = Array{Float32}(undef, (length(tomo.dark_files), Ny, Nx))
+
+    #     Threads.@threads for i ∈ eachindex(fns)
+    #         fn = fns[i]
+    #         if tomo.to_be_transposed
+    #             pdata = (Float32.(read_nrimage(joinpath(tomo.data_dir, fn))))'
+    #         else 
+    #             pdata = Float32.(read_nrimage(joinpath(tomo.data_dir, fn)))
+    #         end 
+
+    #         if medianfilter
+    #             ndata = thresholdmedian(pdata[ny1-ksize:ny2+ksize, nx1-ksize:nx2+ksize], medianfilter_threashold, medianfilter_kernelsize)  
+    #             pdata = thresholdmedian(pdata[cy1-ksize:cy2+ksize, cx1-ksize:cx2+ksize], medianfilter_threashold, medianfilter_kernelsize)[ksize+1:end-ksize, ksize+1:end-ksize] 
+    #             # pdata = pdata[ksize+1:end-ksize, ksize+1:end-ksize] 
+    #         end
+            
+    #         norm_data[i] = sum(ndata[ksize+1:end-ksize])
+            
+    #         if sdfactor > 1
+    #             data[i, :, :] = mean([pdata[i:sdfactor:Ny*sdfactor, j:sdfactor:Nx*sdfactor] for i ∈ 1:sdfactor for j ∈ 1:sdfactor ])     
+    #         else
+    #             data[i, :, :] = pdata[:,:]
+    #         end
+    #     end
+
+    #     for (i, fn) in enumerate(tomo.white_files)
+    #         if tomo.to_be_transposed
+    #             pdata = (Float32.(read_nrimage(joinpath(tomo.white_dir, fn))))'
+    #         else 
+    #             pdata = Float32.(read_nrimage(joinpath(tomo.white_dir, fn)))
+    #         end 
+
+    #         if medianfilter
+    #             ndata = thresholdmedian(pdata[ny1-ksize:ny2+ksize, nx1-ksize:nx2+ksize], medianfilter_threashold, medianfilter_kernelsize)  
+    #             pdata = thresholdmedian(pdata[cy1-ksize:cy2+ksize, cx1-ksize:cx2+ksize], medianfilter_threashold, medianfilter_kernelsize)[ksize+1:end-ksize, ksize+1:end-ksize] 
+    #             # pdata = pdata[ksize+1:end-ksize, ksize+1:end-ksize] 
+    #         end
+
+    #         norm_white += sum(ndata[ksize+1:end-ksize])
+    #         if sdfactor > 1
+    #             white[i, :, :] = mean([pdata[i:sdfactor:Ny*sdfactor, j:sdfactor:Nx*sdfactor] for i ∈ 1:sdfactor for j ∈ 1:sdfactor ])     
+    #         else
+    #             white[i, :, :] = pdata[:,:]
+    #         end
+    #     end
+            
+    #     norm_white /= length(tomo.white_files)
+
+    #     for (i, fn) in enumerate(tomo.dark_files)
+    #         if tomo.to_be_transposed
+    #             pdata = (Float32.(read_nrimage(joinpath(tomo.dark_dir, fn))))'
+    #         else 
+    #             pdata = Float32.(read_nrimage(joinpath(tomo.dark_dir, fn)))
+    #         end 
+
+    #         if medianfilter
+    #             ndata = thresholdmedian(pdata[ny1-ksize:ny2+ksize, nx1-ksize:nx2+ksize], medianfilter_threashold, medianfilter_kernelsize)  
+    #             pdata = thresholdmedian(pdata[cy1-ksize:cy2+ksize, cx1-ksize:cx2+ksize], medianfilter_threashold, medianfilter_kernelsize)[ksize+1:end-ksize, ksize+1:end-ksize] 
+    #             # pdata = pdata[ksize+1:end-ksize, ksize+1:end-ksize] 
+    #         end
+            
+    #         norm_dark += sum(ndata[ksize+1:end-ksize])
+
+    #         if sdfactor > 1
+    #             dark[i, :, :] = mean([pdata[i:sdfactor:Ny*sdfactor, j:sdfactor:Nx*sdfactor] for i ∈ 1:sdfactor for j ∈ 1:sdfactor ])     
+    #         else
+    #             dark[i, :, :] = pdata[:,:]
+    #         end
+    #     end
+            
+    #     norm_dark /= length(tomo.white_files)
+
+    #     if medianfilter
+    #         prc = [:dataread, :medianfiltering, ]
+    #     else
+    #         prc = [:dataread]
+    #     end
+
+    #     return new(_Version, ths, data, white, dark, norm_data, norm_white, norm_dark, prc, [0.0, 0.0])
+    # end
 
     function TomoData(_Version, ths, data, white, dark, norm_data, norm_white, norm_dark, prc, cor=[0.0, 0.0])
         return new(_Version, ths, data, white, dark, norm_data, norm_white, norm_dark, prc, cor)
