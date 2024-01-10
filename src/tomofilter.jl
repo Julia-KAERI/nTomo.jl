@@ -1,4 +1,4 @@
-using Statistics
+using Statistics, Images
  
 abstract type AbstractTomoFilter end
 
@@ -40,21 +40,22 @@ function (p::IdentityFilter)(img::Matrix{<:Real})
 end
 
 function (p::MedianFilter)(img::Matrix{<:Real})
-    h, w = size(img)
-    nn = (p.ksize-1)>>1
+    result = mapwindow(median, img, (p.ksize, p.ksize))
+    # h, w = size(img)
+    # nn = (p.ksize-1)>>1
     
-    result = copy(img)
-    if p.use_threads 
-        Threads.@threads for j = 1:w
-            for i = 1:h
-                @inbounds result[i, j] = median(img[max(1,i-nn):min(h, i+nn), max(1, j-nn):min(w, j+nn)])
-            end
-        end
-    else
-        for j = 1:w, i = 1:h
-            @inbounds result[i, j] = median(img[max(1,i-nn):min(h, i+nn), max(1, j-nn):min(w, j+nn)])
-        end
-    end
+    # result = copy(img)
+    # if p.use_threads 
+    #     Threads.@threads for j = 1:w
+    #         for i = 1:h
+    #             @inbounds result[i, j] = median(img[max(1,i-nn):min(h, i+nn), max(1, j-nn):min(w, j+nn)])
+    #         end
+    #     end
+    # else
+    #     for j = 1:w, i = 1:h
+    #         @inbounds result[i, j] = median(img[max(1,i-nn):min(h, i+nn), max(1, j-nn):min(w, j+nn)])
+    #     end
+    # end
     return result
 end
 

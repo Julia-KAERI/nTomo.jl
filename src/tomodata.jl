@@ -116,13 +116,15 @@ mutable struct TomoData <: AbstractTomoData
         imgfilters::Union{AbstractVector{<:AbstractTomoFilter}, Nothing} = nothing
         )
 
-        if imgfilters != Nothing 
+        isfiltered = false
+
+        if imgfilters ≠ nothing 
             kk = [f.ksize for f in imgfilters]
             if all(x->x==kk[1], kk) === false 
                 error("Each of filters have the same size")
             else 
                 noise_filter_size = kk[1]
-        
+                isfiltered = true
             end
         else 
             imgfilters = [IdentityFilter(3), ]
@@ -235,9 +237,14 @@ mutable struct TomoData <: AbstractTomoData
         norm_dark /= length(tomo.white_files)
 
         
-        prc = [:dataread]
+        if isfiltered
+            prc = [:dataread, :medianfiltering, ]
+        else
+            prc = [:dataread]
+        end
 
-        return new(_Version, ths, data, white, dark, noise_filter_size, norm_data, norm_white, norm_dark, prc, [0.0, 0.0])
+
+        return new(_Version, ths, data, white, dark, norm_data, norm_white, norm_dark, prc, [0.0, 0.0])
     end
 
 
