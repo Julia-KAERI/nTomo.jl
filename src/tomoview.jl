@@ -19,8 +19,11 @@ function get_image(tomo::TomoReader, angle::Real=0.0, contrast::Real = 1.0;
     @assert 0.1 ≤ resize_scale ≤ 10.0
 
     contrast = Float32(contrast)
-    threashold = Float32(threashold)
-    ``
+    
+    if threashold ≠ nothing
+        threashold = Float32(threashold)
+    end
+    
     ths = [th for (obj, th, fn) ∈ tomo.data_files if obj == 1]
     if length(ths) == 0 
         @error "No images for object=$object, angle=$angle"
