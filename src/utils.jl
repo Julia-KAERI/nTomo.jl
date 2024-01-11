@@ -10,47 +10,43 @@ function mat2gray(mat)
     
 end
 
-# function colorize(img::Union{Matrix{T}, CuMatrix{T}}, color::Symbol, scale=:linear, minval::Union{Nothing, Real}=nothing, maxval::Union{Nothing, Real}=nothing) where T<:Real
-#     m, n = size(img)
-#     mv, Mv = extrema(img)
+function colorize(img::Matrix{<:Real}, color::Symbol, scale=:linear, minval::Union{Nothing, Real}=nothing, maxval::Union{Nothing, Real}=nothing)
+    m, n = size(img)
+    mv, Mv = extrema(img)
 
-#     if typeof(img) <: CuMatrix
-#         img = Array(img)
-#     end
+    colorscheme = colorschemes[color]
 
-#     colorscheme = colorschemes[color]
+    L = length(colorscheme)
 
-#     L = length(colorscheme)
+    if minval !== nothing && maxval !== nothing
+        mv, Mv = minval, maxval
+    end
+    if minval !== nothing
+        mv = minval
+    end
+    if maxval !== nothing
+        Mv = maxval
+    end    
 
-#     if minval !== nothing && maxval !== nothing
-#         mv, Mv = minval, maxval
-#     end
-#     if minval !== nothing
-#         mv = minval
-#     end
-#     if maxval !== nothing
-#         Mv = maxval
-#     end    
+    @assert mv < Mv
 
-#     @assert mv < Mv
+    dd = (Mv-mv)/L
 
-#     dd = (Mv-mv)/L
+    result = zeros(RGB, m, n)
 
-#     result = zeros(RGB, m, n)
+    @Threads.threads for I in eachindex(img)
+        ll = round(Int64, (img[I]-mv)/dd)
 
-#     @Threads.threads for I in eachindex(img)
-#         ll = round(Int64, (img[I]-mv)/dd)
-
-#         if ll < 1
-#             @inbounds result[I] = colorscheme[ll+1]
-#         elseif ll > (L-1)
-#             @inbounds result[I] = colorscheme[end]
-#         else 
-#             @inbounds result[I] = colorscheme[ll]
-#         end
-#     end
-#     return result
-# end
+        if ll < 1
+            @inbounds result[I] = colorscheme[ll+1]
+        elseif ll > (L-1)
+            @inbounds result[I] = colorscheme[end]
+        else 
+            @inbounds result[I] = colorscheme[ll]
+        end
+    end
+    return result
+end
 
 function colorize(img::Matrix{Gray}, colorscheme::ColorScheme, scale=:linear, minval::Union{Nothing, Real}=nothing, maxval::Union{Nothing, Real}=nothing)
     return colorize(Float64.(img), colorscheme, scale, minval, maxval)
