@@ -1,6 +1,6 @@
-filter_name = ("ram", "shepp-logan", "cosine", "hamming", "hann")
+filter_name = ("ramp", "shepp-logan", "cosine", "hamming", "hann")
 
-function ram(N::Int64)
+function ramp(N::Int64)
     result = zeros(N)
     if iseven(N)
         center = round(Int64, N/2)
@@ -24,7 +24,7 @@ function hanning(N::Int64)
     return a .- (1.0-a) .* cos.((2*pi/(N-1)) .* (Array(0:1:N-1)))
 end
 
-function fourier_filter(N::Int, filtername = "ram")
+function fourier_filter(N::Int, filtername = "ramp")
     filtername = lowercase(filtername)
     
     if filtername ∉ filter_name 
@@ -33,7 +33,7 @@ function fourier_filter(N::Int, filtername = "ram")
     
     filter::Array{Float32, 1} = 1.0 .- abs.(range(-1, stop=1, length=N))
     
-    if filtername == "ram"
+    if filtername == "ramp"
     elseif filtername == "shepp-logan"
         omega::Array{Float32, 1} = Float32.(pi .* fftfreq(N)[2:N])
         filter[2:N] .*= sin.(omega) ./ omega
@@ -51,7 +51,7 @@ function fourier_filter(N::Int, filtername = "ram")
     return filter
 end
 
-function fourier_filter2(N::Int, filtername = "ram")
+function fourier_filter2(N::Int, filtername = "ramp")
     filtername = lowercase(filtername)
     
     if filtername ∉ filter_name 
@@ -67,7 +67,7 @@ function fourier_filter2(N::Int, filtername = "ram")
 
     filter = 2*real(fft(f))
 
-    if filtername == "ram"
+    if filtername == "ramp"
     elseif filtername == "shepp-logan"
         omega::Array{Float32, 1} = Float32.(pi .* fftfreq(N)[2:N])
         filter[2:N] .*= sin.(omega) ./ omega

@@ -74,7 +74,9 @@ end
 
 function filtered_back_projection(sinogram, angles, center, filtername, mode=:cpu)
     @assert mode ∈ (:cpu, :cuda)
-
+    if filtername ∉ filter_name
+        error("filtername shouled be one of $(filter_name)")
+    end
     nAngles, Ndet = size(sinogram)
     
     S = fbp_preproc(sinogram, center, Ndet)
