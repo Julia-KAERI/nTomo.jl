@@ -1,15 +1,8 @@
 using FileIO, CFITSIO, Images
 
-# export read_nrimage
-
-# include("ctiftags.jl")
-
-
 function bin2str(arr, endian)
     return String(Char.(arr))
 end
-
-
 
 function read_tif(filepath)
     #print("read_tif")

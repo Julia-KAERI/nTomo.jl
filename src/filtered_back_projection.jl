@@ -71,9 +71,44 @@ end
 #     return nothing
 # end
 
+# function filtered_back_projection(sinogram, angles, center, filtername, mode=:cpu)
+#     @assert mode ∈ (:cpu, :cuda)
+#     if filtername ∉ filter_name
+#         error("filtername shouled be one of $(filter_name)")
+#     end
+#     nAngles, Ndet = size(sinogram)
+    
+#     S = fbp_preproc(sinogram, center, Ndet)
+#     N = size(S)[1]
+#     ffilter = fourier_filter2(N, filtername)
+#     angles = Float32.(-angles .* (pi/180.0) .+ pi/2.0)
 
-function filtered_back_projection(sinogram, angles, center, filtername, mode=:cpu)
-    @assert mode ∈ (:cpu, :cuda)
+#     if mode == :cpu
+#         img = maincal_cpu(S, angles, ffilter, Ndet, center)
+#     else 
+#         error("no cuda yet")
+
+#         # Sa = real(ifft(fft(CuArray(S), 1) .* repeat(CuArray(ffilter), 1, length(angles)), 1))[1:Ndet, :]
+
+
+#         # Im = CUDA.zeros(Float32,(Ndet, Ndet))
+
+#         # xx = CuArray(Float32.(range(-0.5, stop=0.5, length = Ndet) .+ (center/Ndet - 0.5)))
+
+#         # nthreads = (8, 8, 8)
+#         # nsize = (length(angles), Ndet, Ndet)
+#         # nblocks = ceil.(Int, nsize .÷ nthreads)     
+#         # @cuda threads=nthreads blocks=nblocks maincal_cuda!(Sa, CuArray(angles), xx, Ndet, Im)
+#         # img = Im./(π*2*length(angles))
+#     end
+# end
+
+function iradon_fbp(
+    sinogram::Matrix{<:Real},
+    angles::AbstractVector{<:Real},
+    center::Union{Real, Nothing} = nothing,
+    filtername::String = "hann")
+
     if filtername ∉ filter_name
         error("filtername shouled be one of $(filter_name)")
     end
@@ -84,24 +119,9 @@ function filtered_back_projection(sinogram, angles, center, filtername, mode=:cp
     ffilter = fourier_filter2(N, filtername)
     angles = Float32.(-angles .* (pi/180.0) .+ pi/2.0)
 
-    if mode == :cpu
-        img = maincal_cpu(S, angles, ffilter, Ndet, center)
-    else 
-        error("no cuda yet")
-
-        # Sa = real(ifft(fft(CuArray(S), 1) .* repeat(CuArray(ffilter), 1, length(angles)), 1))[1:Ndet, :]
-
-
-        # Im = CUDA.zeros(Float32,(Ndet, Ndet))
-
-        # xx = CuArray(Float32.(range(-0.5, stop=0.5, length = Ndet) .+ (center/Ndet - 0.5)))
-
-        # nthreads = (8, 8, 8)
-        # nsize = (length(angles), Ndet, Ndet)
-        # nblocks = ceil.(Int, nsize .÷ nthreads)     
-        # @cuda threads=nthreads blocks=nblocks maincal_cuda!(Sa, CuArray(angles), xx, Ndet, Im)
-        # img = Im./(π*2*length(angles))
-    end
+    
+    return maincal_cpu(S, angles, ffilter, Ndet, center)
+    
 end
 
 

@@ -3,7 +3,7 @@ using Images, TestImages
 """
     phantom_shepp_logan(n, padding=0)
 
-Output modified shepp logan phantom with zero padding.  Shepp logan phantom is taken from the shepp_logan() function 
+Output modified shepp logan phantom with padding. Shepp logan phantom is taken from the shepp_logan() function 
 in `Images.jl`. The total image size is (n+2*padding, n+2*padding)
 """
 function phantom_shepp_logan(n, padding=0)

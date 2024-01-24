@@ -22,12 +22,12 @@ struct MedianFilter <: AbstractTomoFilter
 end
 
 
-struct ThreasholdMedianFilter <: AbstractTomoFilter
+struct ThresholdMedianFilter <: AbstractTomoFilter
     ksize::Integer
     meanlevel::Real
     use_threads::Bool
 
-    function ThreasholdMedianFilter(ksize::Integer, meanlevel::Real, use_threads::Bool=false)
+    function ThresholdMedianFilter(ksize::Integer, meanlevel::Real, use_threads::Bool=false)
         @assert isodd(ksize) && ksize > 1
         @assert meanlevel > 1
         return new(ksize, meanlevel, use_threads)
@@ -41,25 +41,10 @@ end
 
 function (p::MedianFilter)(img::Matrix{<:Real})
     result = mapwindow(median, img, (p.ksize, p.ksize))
-    # h, w = size(img)
-    # nn = (p.ksize-1)>>1
-    
-    # result = copy(img)
-    # if p.use_threads 
-    #     Threads.@threads for j = 1:w
-    #         for i = 1:h
-    #             @inbounds result[i, j] = median(img[max(1,i-nn):min(h, i+nn), max(1, j-nn):min(w, j+nn)])
-    #         end
-    #     end
-    # else
-    #     for j = 1:w, i = 1:h
-    #         @inbounds result[i, j] = median(img[max(1,i-nn):min(h, i+nn), max(1, j-nn):min(w, j+nn)])
-    #     end
-    # end
     return result
 end
 
-function (p::ThreasholdMedianFilter)(img::Matrix{<:Real})
+function (p::ThresholdMedianFilter)(img::Matrix{<:Real})
     h, w = size(img)
     nn = (p.ksize-1)>>1
     result = copy(img)

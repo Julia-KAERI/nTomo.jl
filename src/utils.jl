@@ -1,16 +1,33 @@
 using Images, ColorSchemes
 
 """
-convert matrix to gray image of Images.jl
+    mat2gray(mat::Matrix{<:Real})
+
+Convert matrix to gray image of Images.jl
 """
-function mat2gray(mat)
+function mat2gray(mat::Matrix{<:Real})
     mv, Mv = extrema(mat)
     
     return Gray.((mat.-mv)./(Mv-mv))
     
 end
 
-function colorize(img::Matrix{<:Real}, color::Symbol, scale=:linear, minval::Union{Nothing, Real}=nothing, maxval::Union{Nothing, Real}=nothing)
+"""
+    colorize(img, color, scale, minval, maxval)
+
+Add color to 2D image. Color schemes uses ColorSchemes.jl[1].  
+
+Reference
+---------
+[1] https://juliagraphics.github.io/ColorSchemes.jl/stable/
+"""
+function colorize(
+    img::Matrix{<:Real}, 
+    color::Symbol, 
+    scale=:linear, 
+    minval::Union{Nothing, Real}=nothing, 
+    maxval::Union{Nothing, Real}=nothing)
+
     m, n = size(img)
     mv, Mv = extrema(img)
 
@@ -48,11 +65,18 @@ function colorize(img::Matrix{<:Real}, color::Symbol, scale=:linear, minval::Uni
     return result
 end
 
-function colorize(img::Matrix{Gray}, colorscheme::ColorScheme, scale=:linear, minval::Union{Nothing, Real}=nothing, maxval::Union{Nothing, Real}=nothing)
+function colorize(img::Matrix{Gray}, 
+    colorscheme::ColorScheme, 
+    scale=:linear, minval::Union{Nothing, Real}=nothing, 
+    maxval::Union{Nothing, Real}=nothing)
     return colorize(Float64.(img), colorscheme, scale, minval, maxval)
 end
 
+"""
+    _thist(img::Matrix{T}, dedge::S) where {T<:Real, S<:Real}
 
+Get histogram of matrix. dedge is the inteval of bins
+"""
 function _thist(img::Matrix{T}, dedge::S) where {T<:Real, S<:Real}
     @assert dedge > zero(dedge)
     
