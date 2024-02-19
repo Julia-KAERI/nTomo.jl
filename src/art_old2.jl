@@ -255,10 +255,7 @@ function get_ordered_indice_by_golden_ratio(θs, interval = 180.0)
         remaining_angles = ths[indices_remained]
         tangle = (angle + angle_increment) % interval
         
-        
-        #v, idx = findmin(abs.(ths[indices_remained] .- tangle))
         v, idx = findmin(abs.(ths[indices_remained] .- tangle))
-        
         angle = ths[indices_remained[idx]]
         append!(ordered_indices, indices_remained[idx])
         popat!(indices_remained, idx)

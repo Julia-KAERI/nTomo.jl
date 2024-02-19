@@ -117,7 +117,7 @@ function iradon_fbp(
     S = fbp_preproc(sinogram, center, Ndet)
     N = size(S)[1]
     ffilter = fourier_filter2(N, filtername)
-    angles = Float32.(-angles .* (pi/180.0) .+ pi/2.0)
+    angles = Float32.(angles .* (pi/180.0) .+ pi/2.0)
 
     
     return maincal_cpu(S, angles, ffilter, Ndet, center)

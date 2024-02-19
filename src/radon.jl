@@ -5,7 +5,7 @@ using Images, Rotations, ImageTransformations, CoordinateTransformations, Interp
 
 Rotate the image around c by θ. θ is in degrees.
 """
-function _rotimg(img::Matrix{T}, θ, c=Union{Real, Nothing}=nothing) where T<:AbstractFloat
+function _rotimg(img::Matrix{T}, θ::AbstractFloat , c=Union{Real, Nothing}=nothing) where T<:AbstractFloat
     m, n = size(img)
     if c === nothing
         img_center = (m>>1, n>>1)
@@ -15,7 +15,7 @@ function _rotimg(img::Matrix{T}, θ, c=Union{Real, Nothing}=nothing) where T<:Ab
     θ = θ/180.0*π
     mv, Mv = extrema(img)
     timg = Gray.((img.-mv)/(Mv-mv))
-    trfm = recenter(RotMatrix(θ), img_center)
+    trfm = recenter(RotMatrix(-θ), img_center)
     img1 = warp(timg, inv(trfm), method=BSpline(Linear()), fillvalue = Flat(), axes(timg))
     result = T.((img1[1:m, 1:n]).*(Mv-mv) .+ mv)
     return result
