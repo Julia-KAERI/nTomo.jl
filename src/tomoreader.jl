@@ -111,31 +111,34 @@ mutable struct TomoReader
     white_files::AbstractVector    
     dark_dir::String
     dark_files::AbstractVector
-    working_dir::String
-    image_type::Symbol
+    working_dir::Union{String, Nothing}
+    image_type::Union{Symbol, Nothing}
     to_be_transposed::Bool
     crop_region::Union{Vector{Integer}, Nothing}
     norm_region::Union{Vector{Integer}, Nothing}
     
 
     function TomoReader(;
-        data_dir,
-        white_dir,
-        dark_dir,
-        working_dir,
-        tomo_type = :parallel,
-        instrument = :hanaro_nr,
-        image_type = nothing,
+        data_dir::String,
+        white_dir::String,
+        dark_dir::String,
+        working_dir::Union{String, Nothing} = nothing,
+        tomo_type::Symbol = :parallel,
+        instrument::Symbol = :hanaro_nr,
+        image_type::Union{Symbol, Nothing} = nothing,
         to_be_transposed::Bool = false,
-        angle_step = 0.3,
+        angle_step::Real = 0.3,
         crop_region = nothing,
         norm_region = nothing
         )
 
         @assert tomo_type ∈ tomo_types
         @assert instrument ∈ instruments
-        @assert prod(isdir.([data_dir, white_dir, dark_dir, working_dir]))
-        
+        if working_dir === nothing
+            @assert prod(isdir.([data_dir, white_dir, dark_dir]))
+        else
+            @assert prod(isdir.([data_dir, white_dir, dark_dir, working_dir]))
+        end
     
         if image_type === nothing
             image_type = image_types[instrument]
