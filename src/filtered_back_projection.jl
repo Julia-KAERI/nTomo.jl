@@ -11,7 +11,9 @@ function fbp_preproc(sinogram, center, Ndet)
     # angles = Float32.(-  .* (pi/180.0) .+ pi/2.0)
     S = zeros(Float32, (N, nAngles))
     xshift = round(Int32, center-Ndet/2)
-    #xshift = 0.0f8
+
+
+    # sinogram 에서의 COR(center of rotation) 의 위치가 S 에서 Ndet/2 에 오도록 변환한다.
     if xshift == 0
         S[1:Ndet, :] = sinogram'
     elseif xshift>0
