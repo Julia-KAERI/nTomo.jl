@@ -22,5 +22,5 @@ Julia REPL 에서 `]` 를 통해 `Pkg` API 로 진입한 후
 - 데이터의 중간값 필터링 및 선택적 중간값 필터링.
 - Filtered back projection(FBP) 를 이용한 3차원 이미지 재구성
 - 재구성된 3d volume 을 "tif" image stack 이나 [nrrd](https://en.wikipedia.org/wiki/Nrrd) 포맷으로 저장 할 수 있다.
-
+- CairoMakie 를 이용한 그림 출력
 </br>
