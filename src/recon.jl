@@ -45,7 +45,7 @@ function recon_fbp!(
     img_reconed = Array{Float32, 3}(undef, (Ndet, Ndet, Nheight))
 
     Threads.@threads for i in 1:Nheight
-        @inbounds img_reconed[:, :, i] = filtered_back_projection(tomo.data[:, i, :], tomo.ths, tomo_cor(tomo, i), filtername) 
+        @inbounds img_reconed[:, :, i] = iradon_fbp(tomo.data[:, i, :], tomo.ths, tomo_cor(tomo, i), filtername) 
     end
     
     push!(tomo.process, :recon_fbp)
