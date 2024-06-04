@@ -40,7 +40,7 @@ function (p::IdentityFilter)(img::Matrix{<:Real})
 end
 
 function (p::MedianFilter)(img::Matrix{<:Real})
-    result = mapwindow(median, img, (p.ksize, p.ksize))
+    result = mapwindow(median!, img, (p.ksize, p.ksize))
     return result
 end
 

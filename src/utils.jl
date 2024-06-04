@@ -102,7 +102,7 @@ Generate makie figure with two plots. The left one is image and the right one is
 function image_profile(img::Matrix; figsize::Union{Nothing, Tuple{Int64, Int64}}=nothing, binsize=2)
     
     if isa(figsize, Nothing) == false
-        @assert (400 < figsize[1] < 2100) && (400 <figsize[2] < 2000)
+        @assert (400 ≤ figsize[1] ≤ 10000) && (400 ≤  figsize[2] ≤ 6000)
     else         
         figsize = (800, 400)
     end

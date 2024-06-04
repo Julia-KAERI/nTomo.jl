@@ -75,7 +75,7 @@ It returns the rotation angle in degree.
 """
 function _rotation_angle_from_filename_enf2(fn)
     if last(fn, 3) == "tif" 
-        pp = split(fn, "_")[4][10:end-1]
+        pp = split(fn, "_")[end-1][10:end-1]
         angle = 0.1*parse(Int64, split(pp, "p")[1])
         return angle
     else 

@@ -40,8 +40,6 @@ function get_image(tomo::TomoReader, angle::Real=0.0, contrast::Real = 1.0;
         img[img.>1.0f0] .= 1.0f0
     end
     
-    
-
 
     if tomo.to_be_transposed
         img = Gray.(img')

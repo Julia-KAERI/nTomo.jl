@@ -1,4 +1,4 @@
-include("medianfilters.jl")
+# include("medianfilters.jl")
 include("tomofilter.jl")
 tomodata_process = (:dataread, :medianfiltering, :normalization, :sinogram, :pixel_normalization, :cor, :recon_fbp)
 reconstruction_method = (:recon_fbp, )
@@ -8,92 +8,6 @@ reconstruction_method = (:recon_fbp, )
 _Version = (0, 1)
 
 abstract type AbstractTomoData end
-
-# struct TomoDataRaw <: AbstractTomoData
-#     version
-#     ths::Vector{Float32}
-#     data::Array{Float32, 3}
-#     white::Array{Float32, 3}
-#     dark::Array{Float32, 3}
-    
-#     function TomoDataRaw(tomo::TomoReader, object)
-#         ths = []
-#         fns = []
-        
-#         for (obj, θ, fn) in tomo.data_files
-#             if obj==object && θ₁ <= θ < θ₂
-#                 push!(ths, θ)
-#                 push!(fns, fn)
-#             end
-#         end
-
-#         ths = Float32.(ths)
-
-#         sdfactor = tomo.scale_down_factor
-
-#         if tomo.to_be_transposed
-#             pdata = (Float32.(read_nrimage(joinpath(tomo.data_dir, fns[1]))))'
-#         else 
-#             pdata = Float32.(read_nrimage(joinpath(tomo.data_dir, fns[1])))
-#         end 
-
-#         Ny, Nx = size(pdata)
-        
-#         data = Array{Float32}(undef, (length(fns), Ny, Nx))
-#         white = Array{Float32}(undef, (length(tomo.white_files), Ny, Nx))
-#         dark = Array{Float32}(undef, (length(tomo.dark_files), Ny, Nx))
-
-
-
-#         Threads.@threads for i ∈ eachindex(fns)
-#             fn = fns[i]
-#             if tomo.to_be_transposed
-#                 pdata = (Float32.(read_nrimage(joinpath(tomo.data_dir, fn))))'
-#             else 
-#                 pdata = Float32.(read_nrimage(joinpath(tomo.data_dir, fn)))
-#             end 
-            
-#             if sdfactor > 1
-#                 data[i, :, :] = mean([pdata[i:sdfactor:Ny*sdfactor, j:sdfactor:Nx*sdfactor] for i ∈ 1:sdfactor for j ∈ 1:sdfactor ])     
-#             else
-#                 data[i, :, :] = pdata[:,:]
-#             end
-#         end
-
-#         for (i, fn) in enumerate(tomo.white_files)
-#             if tomo.to_be_transposed
-#                 pdata = (Float32.(read_nrimage(joinpath(tomo.white_dir, fn))))'
-#             else 
-#                 pdata = Float32.(read_nrimage(joinpath(tomo.white_dir, fn)))
-#             end 
-
-#             if sdfactor > 1
-#                 white[i, :, :] = mean([pdata[i:sdfactor:Ny*sdfactor, j:sdfactor:Nx*sdfactor] for i ∈ 1:sdfactor for j ∈ 1:sdfactor ])     
-#             else
-#                 white[i, :, :] = pdata[:,:]
-#             end
-#         end
-        
-#         for (i, fn) in enumerate(tomo.dark_files)
-#             if tomo.to_be_transposed
-#                 pdata = (Float32.(read_nrimage(joinpath(tomo.dark_dir, fn))))'
-#             else 
-#                 pdata = Float32.(read_nrimage(joinpath(tomo.dark_dir, fn)))
-#             end 
-
-#             if sdfactor > 1
-#                 dark[i, :, :] = mean([pdata[i:sdfactor:Ny*sdfactor, j:sdfactor:Nx*sdfactor] for i ∈ 1:sdfactor for j ∈ 1:sdfactor ])     
-#             else
-#                 dark[i, :, :] = pdata[:,:]
-#             end
-#         end
-            
-#         prc = [:dataread]
-#         return new(_Version, ths, data, white, dark, nothing, nothing, nothing, prc)
-#     end
-# end
-
-
 
 mutable struct TomoData <: AbstractTomoData
     version
