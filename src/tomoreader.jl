@@ -129,8 +129,6 @@ Fields
     to_be_transposed : 계산을 위해 회전축은 이미지의 세로방향이어야 한다. 가로방향일경우 `true`.
     crop_region     : crop 영역
     norm_region     : normalizaion 영역
-    scale_down      : 이미지가 클 경우 가로 세로 각각 1/n 크기로 줄인다. 
-
 """
 mutable struct TomoReader
     tomo_type::Symbol
@@ -190,7 +188,7 @@ mutable struct TomoReader
             @error "no dark file"
         end
         
-        return new(tomo_type, instrument, data_dir, datafiles, white_dir, whitefiles, dark_dir, darkfiles, working_dir, image_type, to_be_transposed, nothing, nothing, scale_down)
+        return new(tomo_type, instrument, data_dir, datafiles, white_dir, whitefiles, dark_dir, darkfiles, working_dir, image_type, to_be_transposed)
     end
 end
 

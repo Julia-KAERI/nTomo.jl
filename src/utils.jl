@@ -1,5 +1,22 @@
 using Images, ColorSchemes, CairoMakie
 
+
+"""
+    rescale(img::Matrix{T}, factor::Integer=1) where T<:Integer
+
+`img` 의 크기를 각각 `1/factor` 로 줄인다. 결과는 원래 `img` 와 같은 성분 타입을 갖는 2차원 배열이다.
+"""
+function rescale(img::Matrix{T}, factor::Integer=1) where T<:Integer
+    @assert factor ∈ 1:5
+    m, n = size(img)
+    M, N = m÷rf, n÷rf
+    result = Matrix{Float64}(undef, (M, N))
+    for i in 1:M, j in 1:N
+        @inbounds result[i, j] = sum(img[rf*(i-1)+1:rf*i, rf*(j-1)+1:rf*j])
+    end
+    return round.(T, result/3)
+end
+
 """
     mat2gray(mat::Matrix{<:Real})
 

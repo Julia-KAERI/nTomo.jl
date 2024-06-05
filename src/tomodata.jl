@@ -30,8 +30,6 @@ mutable struct TomoData <: AbstractTomoData
         imgfilters::Union{AbstractVector{<:AbstractTomoFilter}, Nothing} = nothing;
         )
 
-        @asser scale_down ∈ 1:5
-
         isfiltered = false
 
         if imgfilters ≠ nothing 
@@ -229,6 +227,43 @@ function tomoload(filepath)
     return TomoData(_version, _ths, _data, _white, _dark, _norm_data, _norm_white, _norm_dark, _proc, _cor)
 end
 
+
+
+function resize!(tomo::TomoData, factor::Integer = 1)
+    @assert :normalization ∈ tomo.process
+    @assert :sinogram ∉ tomo.process
+    @assert factor ∈ 1:5
+    L, M, N = size(tomo.data)
+    
+    if factor == 1
+        return
+    end
+
+
+    _data = Array{eltype(tomo.data)}(undef, (L, M÷3, N÷3))
+
+    @Threads.threads for l ∈ 1:L
+        @inbounds _data[l, :, :] = rescale(tomo.data[l, :, :], factor)
+    end
+
+    tomo.data = _data
+
+    L, M, N = size(tomo.white)
+    _white = Array{eltype(tomo.white)}(undef, (L, M÷3, N÷3))
+    @Threads.threads for l ∈ 1:L
+        @inbounds _white[l, :, :] = rescale(tomo.white[l, :, :], factor)
+    end
+
+    tomo.white = _white
+
+    L, M, N = size(tomo.dark)
+    _dark = Array{eltype(tomo.dark)}(undef, (L, M÷3, N÷3))
+    @Threads.threads for l ∈ 1:L
+        @inbounds _dark[l, :, :] = rescale(tomo.dark[l, :, :], factor)
+    end
+
+    tomo.dark = _dark
+end
 
 function area_normalize!(tomo::TomoData)
     @assert :medianfiltering ∈ tomo.process
