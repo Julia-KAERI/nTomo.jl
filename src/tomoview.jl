@@ -12,8 +12,9 @@ function img2gray(img::Matrix, contrast::Real = 1.0, resize_scale::Real = 1.0)
     end
 end
 
+
 function get_image(tomo::TomoReader, angle::Real=0.0, contrast::Real = 1.0; 
-    threashold::Union{Real, Nothing}=nothing, resize_scale::Real = 1.0)
+    threashold::Union{Real, Nothing}=nothing)
     
     @assert 0 < contrast <= 1.0
     @assert 0.1 ≤ resize_scale ≤ 10.0

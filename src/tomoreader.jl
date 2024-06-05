@@ -102,6 +102,36 @@ function _rotation_angle_from_filename_enf(fn)
     end
 end
 
+"""
+    TomoReader
+
+Tomography 데이터를 읽고 처리하기 위한 자료구조. 데이터, 다크, 화이트 이미지는 각각 다른 디렉토리에 분리되어 있어야 한다. 
+본격적으로 데이터를 처리하기 전에 아래와 같은 일을 수행 할 수 있다.
+    
+- `set_crop_region` 함수를 통해 전체 이미지에서 reconstruction 에 사용될 이미지 영역을 정한다.
+- `set_norm_region` 함수를 통해 normalization 할 영역을 정한다.
+- 이미지 일부를 이용하여 median filter 를 어떤 크기로 얼마나 사용할지를 정한다.
+
+Fields
+======
+
+    tomo_type       : (:parallel, :pan, :cone) 중의 하나.
+    instrument      : 장치 이름
+    data_dir        : 데이터 디렉토리 경로
+    data_files      : 각 이미지 파일이 (object, 각도(degree), 파일이름) 들의 벡터로 저장된다.
+    white_dir       : 화이트빔 데이터 디렉토리 경로
+    white_files     : 화이트빔 이미지 파일 이름들의 벡터
+    dark_dir        : 다크 데이터 디렉토리 경로
+    dark_files      : 다크 이미지 파일 이름들의 벡터
+    working_dir     : 작업 디렉토리, 현재로서는 별 기능을 하지 않는다.
+    image_type      : 이미지 형식. 현재로서는 기능을 하지 않는다. 하나로 장치의 겨우 instrument 에 따라 
+                      정해진다.
+    to_be_transposed : 계산을 위해 회전축은 이미지의 세로방향이어야 한다. 가로방향일경우 `true`.
+    crop_region     : crop 영역
+    norm_region     : normalizaion 영역
+    scale_down      : 이미지가 클 경우 가로 세로 각각 1/n 크기로 줄인다. 
+
+"""
 mutable struct TomoReader
     tomo_type::Symbol
     instrument::Symbol
@@ -116,6 +146,7 @@ mutable struct TomoReader
     to_be_transposed::Bool
     crop_region::Union{Vector{Integer}, Nothing}
     norm_region::Union{Vector{Integer}, Nothing}
+    scale_down::Int64
     
 
     function TomoReader(;
@@ -129,11 +160,14 @@ mutable struct TomoReader
         to_be_transposed::Bool = false,
         angle_step::Real = 0.3,
         crop_region = nothing,
-        norm_region = nothing
+        norm_region = nothing,
+        scale_down::Integer = 1
         )
 
         @assert tomo_type ∈ tomo_types
         @assert instrument ∈ instruments
+        @assert scale_down ∈ 1:8
+        
         if working_dir === nothing
             @assert prod(isdir.([data_dir, white_dir, dark_dir]))
         else
@@ -155,8 +189,8 @@ mutable struct TomoReader
         if length(darkfiles) == 0
             @error "no dark file"
         end
-    
-        return new(tomo_type, instrument, data_dir, datafiles, white_dir, whitefiles, dark_dir, darkfiles, working_dir, image_type, to_be_transposed)
+        
+        return new(tomo_type, instrument, data_dir, datafiles, white_dir, whitefiles, dark_dir, darkfiles, working_dir, image_type, to_be_transposed, nothing, nothing, scale_down)
     end
 end
 
@@ -165,7 +199,8 @@ function Base.show(io::IO, ::MIME"text/plain", tomo::TomoReader)
     r *= "  - Instrumnent : $(String(tomo.instrument))\n"
     r *= "  - Tomography type : $(String(tomo.tomo_type))\n"
     r *= "  - To be transposed : $(tomo.to_be_transposed)\n"
-    r *= "  - Number of images : $(length(tomo.data_files))"
+    r *= "  - Number of images : $(length(tomo.data_files))\n"
+    r *= "  - Scale down factor : $(tomo.scale_down)"
     println(io, r)
 end
 
