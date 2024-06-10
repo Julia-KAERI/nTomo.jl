@@ -115,20 +115,21 @@ Tomography 데이터를 읽고 처리하기 위한 자료구조. 데이터, 다�
 Fields
 ======
 
-    tomo_type       : (:parallel, :pan, :cone) 중의 하나.
-    instrument      : 장치 이름
-    data_dir        : 데이터 디렉토리 경로
-    data_files      : 각 이미지 파일이 (object, 각도(degree), 파일이름) 들의 벡터로 저장된다.
-    white_dir       : 화이트빔 데이터 디렉토리 경로
-    white_files     : 화이트빔 이미지 파일 이름들의 벡터
-    dark_dir        : 다크 데이터 디렉토리 경로
-    dark_files      : 다크 이미지 파일 이름들의 벡터
-    working_dir     : 작업 디렉토리, 현재로서는 별 기능을 하지 않는다.
-    image_type      : 이미지 형식. 현재로서는 기능을 하지 않는다. 하나로 장치의 겨우 instrument 에 따라 
-                      정해진다.
-    to_be_transposed : 계산을 위해 회전축은 이미지의 세로방향이어야 한다. 가로방향일경우 `true`.
-    crop_region     : crop 영역
-    norm_region     : normalizaion 영역
+    tomo_type           : (:parallel, :pan, :cone) 중의 하나.
+    instrument          : 장치 이름
+    data_dir            : 데이터 디렉토리 경로
+    data_files          : 각 이미지 파일이 (object, 각도(degree), 파일이름) 들의 벡터로 저장된다.
+    white_dir           : 화이트빔 데이터 디렉토리 경로
+    white_files         : 화이트빔 이미지 파일 이름들의 벡터
+    dark_dir            : 다크 데이터 디렉토리 경로
+    dark_files          : 다크 이미지 파일 이름들의 벡터
+    working_dir         : 작업 디렉토리, 현재로서는 별 기능을 하지 않는다.
+    image_type          : 이미지 형식. 현재로서는 기능을 하지 않는다. 하나로 장치의 겨우 instrument 에 따라 
+                            정해진다.
+    to_be_transposed    : 계산을 위해 회전축은 이미지의 세로방향이어야 한다. 가로방향일경우 `true`.
+    crop_region         : crop 영역
+    norm_region         : normalizaion 영역
+    scale_down          : 1, 2, 3, 4, 5 중의 하나. 1/scale_down 으로 가로/세로 크기가 작아진다. 
 """
 mutable struct TomoReader
     tomo_type::Symbol
@@ -159,12 +160,12 @@ mutable struct TomoReader
         angle_step::Real = 0.3,
         crop_region = nothing,
         norm_region = nothing,
-        scale_down::Integer = 1
+        scale_down::Int64 = 1
         )
 
         @assert tomo_type ∈ tomo_types
         @assert instrument ∈ instruments
-        @assert scale_down ∈ 1:8
+        @assert scale_down ∈ 1:5
         
         if working_dir === nothing
             @assert prod(isdir.([data_dir, white_dir, dark_dir]))
@@ -188,7 +189,8 @@ mutable struct TomoReader
             @error "no dark file"
         end
         
-        return new(tomo_type, instrument, data_dir, datafiles, white_dir, whitefiles, dark_dir, darkfiles, working_dir, image_type, to_be_transposed)
+        return new(tomo_type, instrument, data_dir, datafiles, white_dir, whitefiles, dark_dir, darkfiles, working_dir, image_type, 
+                    to_be_transposed, nothing, nothing, scale_down)
     end
 end
 
@@ -306,3 +308,14 @@ function set_norm_region(tomo::TomoReader, x1::Real, y1::Real, x2::Real, y2::Rea
     @assert 1 ≤ y1 < y2
     tomo.norm_region = [x1, y1, x2, y2]
 end
+
+"""
+    set_scale_down(tomo::TomoReader, factor::Integer=1)
+
+Change ths scale_down factor
+"""
+function set_scale_down(tomo::TomoReader, factor::Integer=1)
+    @assert factor ∈ 1:5
+    tomo.scale_down = factor
+end
+

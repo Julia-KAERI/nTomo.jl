@@ -4,28 +4,30 @@ using Images, ColorSchemes, CairoMakie
 """
     rescale(img::Matrix{T}, factor::Integer=1) where T<:Integer
 
-`img` 의 크기를 각각 `1/factor` 로 줄인다. 결과는 원래 `img` 와 같은 성분 타입을 갖는 2차원 배열이다.
+    `img` 의 크기를 각각 `1/factor` 로 줄인 2차원 배열을 반환한다. 
 """
 function rescale(img::Matrix{T}, factor::Integer=1) where T<:Integer
     @assert factor ∈ 1:5
     m, n = size(img)
-    M, N = m÷rf, n÷rf
+    M, N = m÷factor, n÷factor
     result = Matrix{Float64}(undef, (M, N))
     for i in 1:M, j in 1:N
-        @inbounds result[i, j] = sum(img[rf*(i-1)+1:rf*i, rf*(j-1)+1:rf*j])
+        @inbounds result[i, j] = sum(img[factor*(i-1)+1:factor*i, factor*(j-1)+1:factor*j])
     end
     return round.(T, result/3)
 end
 
-"""
-    mat2gray(mat::Matrix{<:Real})
 
-Convert matrix to gray image of Images.jl
 """
-function mat2gray(mat::Matrix{<:Real})
+    mat2gray(mat::Matrix{<:Real}, contrast=1.0)
+
+Convert matrix to gray image of Images.jl. 
+"""
+function mat2gray(mat::Matrix{<:Real}, contrast::Real = 1.0)
+    @assert 0.0 ≤ contrast ≤ 1.0
     mv, Mv = extrema(mat)
-    
-    return Gray.((mat.-mv)./(Mv-mv))
+    contrast = convert(eltype(mat), contrast)
+    return  Gray.((mat .- mv)./(Mv-mv) .* contrast)
     
 end
 
@@ -111,13 +113,16 @@ end
 
 
 """
-    image_profile(img, figsize, binsize)
+    image_profile(img, figsize, binsize, xlog, ylog)
 
 
 Generate makie figure with two plots. The left one is image and the right one is histogram of it
 """
-function image_profile(img::Matrix; figsize::Union{Nothing, Tuple{Int64, Int64}}=nothing, binsize=2)
-    
+function image_profile(img::Matrix; figsize::Union{Nothing, Tuple{Int64, Int64}}=nothing, binsize=2, xlog::Bool=false, ylog::Bool=false)
+
+    _xscale = (xlog == false) ? identity : log10
+    _yscale = (ylog == false) ? identity : log10
+
     if isa(figsize, Nothing) == false
         @assert (400 ≤ figsize[1] ≤ 10000) && (400 ≤  figsize[2] ≤ 6000)
     else         
@@ -128,10 +133,12 @@ function image_profile(img::Matrix; figsize::Union{Nothing, Tuple{Int64, Int64}}
 
     Mv = maximum(img)
     v1 = image(f[1, 1:2], img', axis=(aspect = DataAspect(), yreversed=true, xticklabelsvisible=false, yticklabelsvisible=false))
-    v2 = hist(f[1, 3], vec(img), bins = 0:binsize:Mv)
+    v2 = hist(f[1, 3], vec(img), bins = 0:binsize:Mv, axis = (xscale = _xscale, yscale = _yscale))
 
     return f
 end
+
+
 
 """
 vscode jupyter notebook 에서 각 함수, 객체 등에 관한 docstring 을 markdown 으로 출력한다.

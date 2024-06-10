@@ -1,17 +1,36 @@
 include("hanaro.jl")
 
-function img2gray(img::Matrix, contrast::Real = 1.0, resize_scale::Real = 1.0)
-    @assert 0.0 ≤ contrast ≤ 1.0
-    @assert 0.1 ≤ resize_scale ≤ 10.0
-    mv, Mv = extrema(img)
-    contrast = convert(eltype(img), contrast)
-    img =  Gray.((img .- mv)./(Mv-mv) .* contrast)
-    if abs(resize_scale-1.0)>0.1 
-        resized = [r*resize_scale for r in size(img)]
-        img = imresize(img, resized)
-    end
+
+function image_profile(tomo::TomoReader, kind = :data, index::Int64 = 1; figsize::Union{Nothing, Tuple{Int64, Int64}}=nothing, binsize=2, xlog::Bool=false, ylog::Bool=false)
+
+    img = get_data_by_index(tomo, kind, index)
+    
+    return image_profile(img, figsize=figsize, binsize=blisize, xlog=xlog, ylog=ylog)
 end
 
+
+function get_data_by_index(tomo::TomoReader, kind = :data, index::Integer=0)
+    @assert kind ∈ (:data, :white, :dark)    
+    if kind == :data
+        @assert 1 ≤ index ≤ length(tomo.data_files)
+        img = read_nrimage(joinpath(tomo.data_dir, (tomo.data_files[index])[3]), tomo.scale_down)
+    elseif  kind == :dark
+        @assert 1 ≤ index ≤ length(tomo.dark_files)
+        img = read_nrimage(joinpath(tomo.dark_dir, (tomo.dark_files[index])), tomo.scale_down)
+    elseif kind == :white 
+        @assert 1 ≤ index ≤ length(tomo.white_files)
+        img = read_nrimage(joinpath(tomo.white_dir, (tomo.white_files[index])), tomo.scale_down)
+    end
+
+    return img
+end
+
+function get_image_by_index(tomo::TomoReader, kind = :data, index::Integer=0)
+    img = get_data_by_index(tomo, kind, index)
+    return mat2gray(Float64.(img))
+end
+
+    
 
 function get_image(tomo::TomoReader, angle::Real=0.0, contrast::Real = 1.0; 
     threashold::Union{Real, Nothing}=nothing)
@@ -32,7 +51,7 @@ function get_image(tomo::TomoReader, angle::Real=0.0, contrast::Real = 1.0;
     end
     
     m = argmin(abs.(angle .- ths))
-    img = Float32.(read_nrimage(joinpath(tomo.data_dir, (tomo.data_files[m])[3])))
+    img = Float32.(read_nrimage(joinpath(tomo.data_dir, (tomo.data_files[m])[3])), tomo.scale_down)
     thv = 1.0f0
     if threashold === nothing
         img /= maximum(img)/contrast
@@ -55,16 +74,15 @@ function get_image(tomo::TomoReader, angle::Real=0.0, contrast::Real = 1.0;
     return img
 end 
 
-function get_image(tomo::TomoReader, angles::AbstractVector, contrast::Real = 1.0, resize_scale::Real = 1.0) 
-    imgs = [get_image(tomo, th, contrast, resize_scale) for th ∈ angles]
+function get_image(tomo::TomoReader, angles::AbstractVector, contrast::Real = 1.0) 
+    imgs = [get_image(tomo, th, contrast) for th ∈ angles]
     return (imgs |> sum)
-
 end
 
 
 function get_image(tomo::TomoData, i::Integer , contrast=0.99)
     @assert 1 ≤ i ≤ size(tomo.data)[1]
-    return img2gray(tomo.data[i, :, :], contrast)
+    return mat2gray(tomo.data[i, :, :], contrast)
 end
 
 function get_histogram(tomo::TomoData, kind = :data, index = nothing, dbin=1.0)
