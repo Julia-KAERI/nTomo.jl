@@ -204,19 +204,18 @@ function Base.show(io::IO, ::MIME"text/plain", tomo::TomoReader)
     println(io, r)
 end
 
-function tomoreaderview(
+function tomo_range_view(
     tomo::TomoReader, 
-    angle_step::Real = 10.0, 
-    contrast::Real = 1.0, 
-    lw::Integer=5, 
-    resize_scale=1.0; 
+    angle_step::Real = 10.0;
+    contrast::Real = 1.0,
+    lw::Integer=2,  
     threashold::Union{Real, Nothing}=nothing)
     
     @assert 0.0 < contrast <= 1.0
 
     contrast = Float32(contrast)
     θ, _fn = tomo.data_files[1][2:end]
-    img = Float32.(read_nrimage(joinpath(tomo.data_dir, _fn)))
+    img = Float32.(read_nrimage(joinpath(tomo.data_dir, _fn), tomo.scale_down ))
     Nimg = 1
     θ += angle_step
     for obj in tomo.data_files[2:end]
@@ -225,7 +224,7 @@ function tomoreaderview(
             break
         end
         if th >=θ 
-            img += Float32.(read_nrimage(joinpath(tomo.data_dir, _fn)))
+            img += Float32.(read_nrimage(joinpath(tomo.data_dir, _fn), tomo.scale_down))
             Nimg += 1
             θ += angle_step
             println(_fn, size(img))
@@ -272,11 +271,6 @@ function tomoreaderview(
         img[y1:y2, x2-lw:lx2] .= lc
         img[y2-lw:ly2, x1:x2] .= lc
         img[y1:y2, lx1:x1+lw] .= lc
-    end
-
-    if abs(resize_scale-1.0)>0.1 
-        resized = round.(Int64, [r*resize_scale for r in size(img)])
-        img = imresize(img, (resized[1], resized[2]))
     end
 
     return img

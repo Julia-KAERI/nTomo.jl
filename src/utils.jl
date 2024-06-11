@@ -31,6 +31,12 @@ function mat2gray(mat::Matrix{<:Real}, contrast::Real = 1.0)
     
 end
 
+function mat2gray(mat::Matrix{T}; contrast::Union{Nothing, Real}=nothing) where T<:Unsigned
+    mv, Mv = typemin(T), typemax(T)
+    return Gray.((mat .- mv)./(Mv-mv))
+end
+
+
 """
     colorize(img, color, scale, minval, maxval)
 
@@ -132,7 +138,7 @@ function image_profile(img::Matrix; figsize::Union{Nothing, Tuple{Int64, Int64}}
     f = Figure(size = figsize)
 
     Mv = maximum(img)
-    v1 = image(f[1, 1:2], img', axis=(aspect = DataAspect(), yreversed=true, xticklabelsvisible=false, yticklabelsvisible=false))
+    v1 = image(f[1, 1:2], img', axis=(aspect = DataAspect(), yreversed=true, xticklabelsvisible=true, yticklabelsvisible=true))
     v2 = hist(f[1, 3], vec(img), bins = 0:binsize:Mv, axis = (xscale = _xscale, yscale = _yscale))
 
     return f

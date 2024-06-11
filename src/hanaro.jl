@@ -27,7 +27,7 @@ function read_nrimage(filepath, scale_down::Integer = 1)
         fsize = fits_get_img_size(f1)
         dd = zeros(UInt16, (fsize[1], fsize[2], fsize[3]))
         cc= fits_read_pix(f1, dd)
-        return rescale(dd[:,:,1]', scale_down)
+        return rescale(Array(dd[:,:,1]'), scale_down)
     else
         error("Input should be tif or fits file")
     end

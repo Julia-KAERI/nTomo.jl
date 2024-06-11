@@ -85,9 +85,9 @@ mutable struct TomoData <: AbstractTomoData
         Threads.@threads for i ∈ eachindex(fns)
             fn = fns[i]
             if tomo.to_be_transposed
-                pdata = (Float32.(read_nrimage(joinpath(tomo.data_dir, fn))))'
+                pdata = (Float32.(read_nrimage(joinpath(tomo.data_dir, fn), tomo.scale_down)))'
             else 
-                pdata = Float32.(read_nrimage(joinpath(tomo.data_dir, fn)))
+                pdata = Float32.(read_nrimage(joinpath(tomo.data_dir, fn), tomo.scale_down))
             end 
             
 
@@ -107,9 +107,9 @@ mutable struct TomoData <: AbstractTomoData
 
         for (i, fn) in enumerate(tomo.white_files)
             if tomo.to_be_transposed
-                pdata = (Float32.(read_nrimage(joinpath(tomo.white_dir, fn))))'
+                pdata = (Float32.(read_nrimage(joinpath(tomo.white_dir, fn), tomo.scale_down)))'
             else 
-                pdata = Float32.(read_nrimage(joinpath(tomo.white_dir, fn)))
+                pdata = Float32.(read_nrimage(joinpath(tomo.white_dir, fn), tomo.scale_down))
             end 
             
             ndata = pdata[ny1-ksize:ny2+ksize, nx1-ksize:nx2+ksize]
@@ -130,9 +130,9 @@ mutable struct TomoData <: AbstractTomoData
 
         for (i, fn) in enumerate(tomo.dark_files)
             if tomo.to_be_transposed
-                pdata = (Float32.(read_nrimage(joinpath(tomo.dark_dir, fn))))'
+                pdata = (Float32.(read_nrimage(joinpath(tomo.dark_dir, fn), tomo.scale_down)))'
             else 
-                pdata = Float32.(read_nrimage(joinpath(tomo.dark_dir, fn)))
+                pdata = Float32.(read_nrimage(joinpath(tomo.dark_dir, fn), tomo.scale_down))
             end 
  
             ndata = pdata[ny1-ksize:ny2+ksize, nx1-ksize:nx2+ksize]

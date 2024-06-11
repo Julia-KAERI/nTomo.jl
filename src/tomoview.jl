@@ -1,6 +1,17 @@
 include("hanaro.jl")
 
+"""
+    image_profile(  tomo::TomoReader, 
+                    kind = :data, 
+                    index::Int64 = 1; 
+                    figsize::Union{Nothing, 
+                    Tuple{Int64, Int64}}=nothing, 
+                    binsize=2, 
+                    xlog::Bool=false, 
+                    ylog::Bool=false)
 
+`utils.jl` 의 `image_profile` 함수를 이용하여 이미지와 그 히스토그램을 makie 로 출력한다.
+"""
 function image_profile( tomo::TomoReader, 
                         kind = :data, 
                         index::Int64 = 1; 
@@ -12,21 +23,31 @@ function image_profile( tomo::TomoReader,
 
     img = get_data_by_index(tomo, kind, index)
     
-    return image_profile(img, figsize=figsize, binsize=blisize, xlog=xlog, ylog=ylog)
+    return image_profile(img, figsize=figsize, binsize=binsize, xlog=xlog, ylog=ylog)
 end
 
 
-function get_data_by_index(tomo::TomoReader, kind = :data, index::Integer=0)
+function get_data_by_index(tomo::TomoReader, kind = :data, index::Union{Nothing, Integer}=1)
     @assert kind ∈ (:data, :white, :dark)    
     if kind == :data
         @assert 1 ≤ index ≤ length(tomo.data_files)
         img = read_nrimage(joinpath(tomo.data_dir, (tomo.data_files[index])[3]), tomo.scale_down)
     elseif  kind == :dark
-        @assert 1 ≤ index ≤ length(tomo.dark_files)
-        img = read_nrimage(joinpath(tomo.dark_dir, (tomo.dark_files[index])), tomo.scale_down)
+        if isa(index, Integer)
+            @assert 1 ≤ index ≤ length(tomo.dark_files)
+            img = read_nrimage(joinpath(tomo.dark_dir, (tomo.dark_files[index])), tomo.scale_down)
+        else 
+            imgs = [read_nrimage(joinpath(tomo.dark_dir, ff), tomo.scale_down) for ff in tomo.dark_files] |> mean
+            img = round.(UInt16, imgs)
+        end
     elseif kind == :white 
-        @assert 1 ≤ index ≤ length(tomo.white_files)
-        img = read_nrimage(joinpath(tomo.white_dir, (tomo.white_files[index])), tomo.scale_down)
+        if isa(index, Integer)
+            @assert 1 ≤ index ≤ length(tomo.white_files)
+            img = read_nrimage(joinpath(tomo.white_dir, (tomo.white_files[index])), tomo.scale_down)
+        else 
+            imgs = [read_nrimage(joinpath(tomo.white_dir, ff), tomo.scale_down) for ff in tomo.white_files] |> mean
+            img = round.(UInt16, imgs)
+        end
     end
 
     return img
@@ -43,7 +64,6 @@ function get_image(tomo::TomoReader, angle::Real=0.0, contrast::Real = 1.0;
     threashold::Union{Real, Nothing}=nothing)
     
     @assert 0 < contrast <= 1.0
-    @assert 0.1 ≤ resize_scale ≤ 10.0
 
     contrast = Float32(contrast)
     
@@ -58,7 +78,7 @@ function get_image(tomo::TomoReader, angle::Real=0.0, contrast::Real = 1.0;
     end
     
     m = argmin(abs.(angle .- ths))
-    img = Float32.(read_nrimage(joinpath(tomo.data_dir, (tomo.data_files[m])[3])), tomo.scale_down)
+    img = Float32.(read_nrimage(joinpath(tomo.data_dir, (tomo.data_files[m])[3]), tomo.scale_down))
     thv = 1.0f0
     if threashold === nothing
         img /= maximum(img)/contrast
@@ -74,10 +94,6 @@ function get_image(tomo::TomoReader, angle::Real=0.0, contrast::Real = 1.0;
         img = Gray.(img)
     end
 
-    if abs(resize_scale-1.0)>0.1 
-        resized = round.(Int64, [r*resize_scale for r in size(img)])
-        img = imresize(img, (resized[1], resized[2]))
-    end
     return img
 end 
 
