@@ -1,7 +1,14 @@
 include("hanaro.jl")
 
 
-function image_profile(tomo::TomoReader, kind = :data, index::Int64 = 1; figsize::Union{Nothing, Tuple{Int64, Int64}}=nothing, binsize=2, xlog::Bool=false, ylog::Bool=false)
+function image_profile( tomo::TomoReader, 
+                        kind = :data, 
+                        index::Int64 = 1; 
+                        figsize::Union{Nothing, 
+                        Tuple{Int64, Int64}}=nothing, 
+                        binsize=2, 
+                        xlog::Bool=false, 
+                        ylog::Bool=false)
 
     img = get_data_by_index(tomo, kind, index)
     
