@@ -27,7 +27,8 @@ end
 
 function maincal_cpu(S, angles, ffilter, Ndet, center)
     I = zeros(Float32,(Ndet, Ndet))
-    x = Float32.(range(-0.5, stop=0.5, length = Ndet) .+ (center/Ndet - 0.5))
+    # x = Float32.(range(-0.5, stop=0.5, length = Ndet) .+ (center/Ndet - 0.5))
+    x = (collect(1:Ndet) .- center)/Ndet
     dx = (center - Ndet/2)
     Threads.@threads for t in eachindex(angles)
         A = real(ifft(fft(S[:, t]).*ffilter))[1:Ndet]
