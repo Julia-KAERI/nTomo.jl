@@ -61,6 +61,7 @@ export read_nrimage,
     calc_cor!,
     calc_cor2, # to be deleted
     cor_image,
+    rotation_shift!,
     recon_fbp,
     recon_fbp!,
     recon_fbp_parts,

@@ -82,47 +82,48 @@ mutable struct TomoData <: AbstractTomoData
         white = Array{Float32}(undef, (length(tomo.white_files), Ny, Nx))
         dark = Array{Float32}(undef, (length(tomo.dark_files), Ny, Nx))
 
+        
         Threads.@threads for i ∈ eachindex(fns)
             fn = fns[i]
             if tomo.to_be_transposed
-                pdata = (Float32.(read_nrimage(joinpath(tomo.data_dir, fn), tomo.scale_down)))'
+                odata = (read_nrimage(joinpath(tomo.data_dir, fn), tomo.scale_down))'
             else 
-                pdata = Float32.(read_nrimage(joinpath(tomo.data_dir, fn), tomo.scale_down))
+                odata = read_nrimage(joinpath(tomo.data_dir, fn), tomo.scale_down)
             end 
             
+            ndata = odata[(ny1-ksize):ny2+ksize, nx1-ksize:nx2+ksize]
+            pdata = odata[cy1-ksize:cy2+ksize, cx1-ksize:cx2+ksize]
 
-            ndata = pdata[ny1-ksize:ny2+ksize, nx1-ksize:nx2+ksize]
-            pdata = pdata[cy1-ksize:cy2+ksize, cx1-ksize:cx2+ksize]
-            
+
             for i in eachindex(imgfilters)
-                ndata = ndata |> imgfilters[i]
                 pdata = pdata |> imgfilters[i]
+                ndata = ndata |> imgfilters[i]
             end
-
+            
             norm_data[i] = sum(ndata[ksize+1:end-ksize])
             
-            data[i, :, :] = pdata[:,:]
+            data[i, :, :] = Float32.(pdata[:,:])
         
         end
 
         for (i, fn) in enumerate(tomo.white_files)
             if tomo.to_be_transposed
-                pdata = (Float32.(read_nrimage(joinpath(tomo.white_dir, fn), tomo.scale_down)))'
+                odata = (read_nrimage(joinpath(tomo.white_dir, fn), tomo.scale_down))'
             else 
-                pdata = Float32.(read_nrimage(joinpath(tomo.white_dir, fn), tomo.scale_down))
+                odata = read_nrimage(joinpath(tomo.white_dir, fn), tomo.scale_down)
             end 
             
-            ndata = pdata[ny1-ksize:ny2+ksize, nx1-ksize:nx2+ksize]
-            pdata = pdata[cy1-ksize:cy2+ksize, cx1-ksize:cx2+ksize]
-            
+            ndata = odata[(ny1-ksize):ny2+ksize, nx1-ksize:nx2+ksize]
+            pdata = odata[cy1-ksize:cy2+ksize, cx1-ksize:cx2+ksize]
+
             for i in eachindex(imgfilters)
-                ndata = ndata |> imgfilters[i]
                 pdata = pdata |> imgfilters[i]
+                ndata = ndata |> imgfilters[i]
             end
 
             norm_white += sum(ndata[ksize+1:end-ksize])
             
-            white[i, :, :] = pdata[:,:]
+            white[i, :, :] = Float32.(pdata[:,:])
             
         end
             
@@ -130,19 +131,19 @@ mutable struct TomoData <: AbstractTomoData
 
         for (i, fn) in enumerate(tomo.dark_files)
             if tomo.to_be_transposed
-                pdata = (Float32.(read_nrimage(joinpath(tomo.dark_dir, fn), tomo.scale_down)))'
+                odata = (read_nrimage(joinpath(tomo.dark_dir, fn), tomo.scale_down))'
             else 
-                pdata = Float32.(read_nrimage(joinpath(tomo.dark_dir, fn), tomo.scale_down))
+                odata = read_nrimage(joinpath(tomo.dark_dir, fn), tomo.scale_down)
             end 
  
-            ndata = pdata[ny1-ksize:ny2+ksize, nx1-ksize:nx2+ksize]
-            pdata = pdata[cy1-ksize:cy2+ksize, cx1-ksize:cx2+ksize]
-            
+            ndata = odata[(ny1-ksize):ny2+ksize, nx1-ksize:nx2+ksize]
+            pdata = odata[cy1-ksize:cy2+ksize, cx1-ksize:cx2+ksize]
+
             for i in eachindex(imgfilters)
-                ndata = ndata |> imgfilters[i]
                 pdata = pdata |> imgfilters[i]
+                ndata = ndata |> imgfilters[i]
             end
-            
+
             norm_dark += sum(ndata[ksize+1:end-ksize])
        
             dark[i, :, :] = pdata[:,:]
@@ -299,6 +300,17 @@ function sinogram!(tomo::TomoData, remove_zero_fluct = true, zero_fluct_factor =
 
 end
 
+"""
+    rotation_shift!(tomo, shift)
+
+Reconstruction 할 때 회전각을 반시계방향으로 shift 만큼 이동한다. 즉 [0, 180) 에서 shift=30 으로 두면 [30, 210) 이 된다. 
+shift 는 radian 이 아닌 degree 값으로 입력한다.
+"""
+function rotation_shift!(tomo::TomoData, shift::Real = 0.0)
+    tomo.ths = tomo.ths .+ shift
+end
+
+
 function pixel_normalize(sino::Matrix{Float32}, Ns=2, lv=1.2)
     psum = sum(sino, dims = 1)
     sino_corrected = zero(sino)
@@ -321,7 +333,7 @@ function pixel_normalize!(tomo::TomoData, Ns=2, lv=1.2)
     for index in 1:size(tomo.data)[2]
         sino = tomo.data[:, index, :]
         psum = sum(sino, dims = 1)
-        sino_corrected = zero(sino)
+        sino_corrected = sino[:,:]
 
 
         for i in (1+Ns):(size(sino)[2]-Ns)
@@ -330,8 +342,6 @@ function pixel_normalize!(tomo::TomoData, Ns=2, lv=1.2)
 
             elseif abs(psum[i] - nmean) > lv 
                 sino_corrected[:, i] = sino[:, i] .* (nmean/psum[i])
-            else 
-                sino_corrected[:, i] = sino[:, i]
             end
         end
         tomo.data[:, index, :] = sino_corrected

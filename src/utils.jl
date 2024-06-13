@@ -11,11 +11,23 @@ function rescale(img::Matrix{T}, factor::Integer=1) where T<:Integer
     m, n = size(img)
     M, N = m÷factor, n÷factor
     result = Matrix{Float64}(undef, (M, N))
-    for i in 1:M, j in 1:N
-        @inbounds result[i, j] = sum(img[factor*(i-1)+1:factor*i, factor*(j-1)+1:factor*j])
+    for j in 1:N, i in 1:M
+        @inbounds result[i, j] = mean(img[factor*(i-1)+1:factor*i, factor*(j-1)+1:factor*j])
     end
-    return round.(T, result/3)
+    return round.(T, result)
 end
+
+function rescale(img::Matrix{T}, factor::Integer=1) where T<:Real
+    @assert factor ∈ 1:5
+    m, n = size(img)
+    M, N = m÷factor, n÷factor
+    result = Matrix{T}(undef, (M, N))
+    for j in 1:N, i in 1:M
+        @inbounds result[i, j] = mean(img[factor*(i-1)+1:factor*i, factor*(j-1)+1:factor*j])
+    end
+    return result
+end
+
 
 
 """

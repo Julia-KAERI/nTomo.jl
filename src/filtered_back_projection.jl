@@ -6,11 +6,14 @@ include("fourier_filter.jl")
 function fbp_preproc(sinogram, center, Ndet)
     nAngles, Ndet = size(sinogram)
 
+    # 역푸리에 변환을 빠르게 하고 노이즈를 줄이기 위해 sinogram 의 사이즈를 크게 한다.
+    # 검출기 pixel 수보다 크거나 같은 2^n 중에 두번째로 작은 수를 선택한다.
     N = max(64, 2^ceil(Int64, log2(2 * Ndet)))
 
     # angles = Float32.(-  .* (pi/180.0) .+ pi/2.0)
     S = zeros(Float32, (N, nAngles))
-    xshift = round(Int32, center-Ndet/2)
+
+    xshift = round(Int64, center-Ndet/2)
 
 
     # sinogram 에서의 COR(center of rotation) 의 위치가 S 에서 Ndet/2 에 오도록 변환한다.
@@ -25,10 +28,11 @@ function fbp_preproc(sinogram, center, Ndet)
     return S
 end
 
+
 function maincal_cpu(S, angles, ffilter, Ndet, center)
     I = zeros(Float32,(Ndet, Ndet))
     # x = Float32.(range(-0.5, stop=0.5, length = Ndet) .+ (center/Ndet - 0.5))
-    x = (collect(1:Ndet) .- center)/Ndet
+    x = (collect(1:Ndet) .- center)./Ndet
     dx = (center - Ndet/2)
     Threads.@threads for t in eachindex(angles)
         A = real(ifft(fft(S[:, t]).*ffilter))[1:Ndet]
