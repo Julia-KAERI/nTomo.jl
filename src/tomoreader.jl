@@ -42,7 +42,7 @@ function get_file_list_hanaro(instrument, image_type, dir_data, dir_white, dir_d
                 objstr = split(fn, "_")[1][end]
                 object = parse(Int64, objstr)
                 #push!(objset, object)
-                push!(datafiles, (angle, fn))
+                push!(datafiles, (1, angle, fn))
             end
         
         end
