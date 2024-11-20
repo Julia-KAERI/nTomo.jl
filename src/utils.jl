@@ -31,19 +31,22 @@ end
 
 
 """
-    mat2gray(mat::Matrix{<:Real}, contrast=1.0)
+    mat2gray(mat::Matrix{<:Real}, range::Union{Nothing, Tuple{Real, Real}} )
 
-Convert matrix to gray image of Images.jl. 
+Convert matrix to gray Image of Images.jl. 
 """
-function mat2gray(mat::Matrix{<:Real}, contrast::Real = 1.0)
-    @assert 0.0 ≤ contrast ≤ 1.0
-    mv, Mv = extrema(mat)
-    contrast = convert(eltype(mat), contrast)
-    return  Gray.((mat .- mv)./(Mv-mv) .* contrast)
-    
+function mat2gray(mat::Matrix{T}, range::Union{Nothing, Tuple{Real, Real}} = nothing ) where T<: Real
+    if range === nothing
+        mv, Mv = extrema(mat)
+        return  Gray.((mat .- mv)./(Mv-mv))
+    else 
+        mv, Mv = minmax(range...)
+        return Gray.(map( x -> ( x<mv ) ? zero(T) : ( (x>Mv) ? one(T) : (x-mv)/(Mv-mv) ), mat))
+
+    end
 end
 
-function mat2gray(mat::Matrix{T}; contrast::Union{Nothing, Real}=nothing) where T<:Unsigned
+function mat2gray(mat::Matrix{T}) where T<:Unsigned
     mv, Mv = typemin(T), typemax(T)
     return Gray.((mat .- mv)./(Mv-mv))
 end
