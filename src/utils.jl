@@ -41,7 +41,7 @@ function mat2gray(mat::Matrix{T}, range::Union{Nothing, Tuple{Real, Real}} = not
         return  Gray.((mat .- mv)./(Mv-mv))
     else 
         mv, Mv = minmax(range...)
-        return Gray.(map( x -> ( x<mv ) ? zero(T) : ( (x>Mv) ? one(T) : (x-mv)/(Mv-mv) ), mat))
+        return Gray.(clamp.((mat .-mv)/(Mv-mv), zero(T), one(T)))
 
     end
 end
