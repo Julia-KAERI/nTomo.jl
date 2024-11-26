@@ -48,12 +48,12 @@ end
 
 function mat2gray(mat::Matrix{T}, range::Union{Nothing, Tuple{Real, Real}} = nothing ) where T<: Integer
     return mat2gray(Float32.(mat), range)
-
 end
 
 function mat2gray(mat::Matrix{T}) where T<:Unsigned
+    cmat = Float32.(mat)
     mv, Mv = typemin(T), typemax(T)
-    return Gray.((mat .- mv)./(Mv-mv))
+    return Gray.((cmat .- cmv)./(Mv-mv))
 end
 
 
