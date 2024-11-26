@@ -53,7 +53,7 @@ end
 function mat2gray(mat::Matrix{T}) where T<:Unsigned
     cmat = Float32.(mat)
     mv, Mv = typemin(T), typemax(T)
-    return Gray.((cmat .- cmv)./(Mv-mv))
+    return Gray.((cmat .- mv)./(Mv-mv))
 end
 
 
