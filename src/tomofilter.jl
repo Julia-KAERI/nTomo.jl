@@ -1,4 +1,4 @@
-using Statistics, Images
+using Statistics, Images, OpenCV, CVext
  
 abstract type AbstractTomoFilter end
 
@@ -16,6 +16,16 @@ struct MedianFilter <: AbstractTomoFilter
     use_threads::Bool 
 
     function MedianFilter(ksize::Integer=3, use_threads::Bool = false)
+        @assert isodd(ksize) && ksize > 1
+        return new(ksize, use_threads)
+    end
+end
+
+struct CVMedianFilter <: AbstractTomoFilter
+    ksize::Integer
+    use_threads::Bool 
+
+    function CVMedianFilter(ksize::Integer=3, use_threads::Bool = false)
         @assert isodd(ksize) && ksize > 1
         return new(ksize, use_threads)
     end
@@ -40,6 +50,11 @@ function (p::IdentityFilter)(img::Matrix{<:Real})
 end
 
 function (p::MedianFilter)(img::Matrix{<:Real})
+    result = mapwindow(median!, img, (p.ksize, p.ksize))
+    return result
+end
+
+function (p::CVMedianFilter)(img::Matrix{<:Real})
     result = mapwindow(median!, img, (p.ksize, p.ksize))
     return result
 end

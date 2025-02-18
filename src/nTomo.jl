@@ -14,7 +14,7 @@ include("tomocor.jl")
 include("tomoview.jl")
 include("art.jl")
 include("recon.jl")
-#include("tomofilter.jl")
+include("tomofilter.jl")
 
 
 export read_nrimage,
@@ -39,6 +39,7 @@ export read_nrimage,
     
     IdentityFilter,
     MedianFilter,
+    CVMedianFilter,
     ThresholdMedianFilter,
 
     TomoReader,
