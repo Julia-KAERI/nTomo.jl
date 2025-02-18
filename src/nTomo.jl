@@ -4,17 +4,20 @@ module nTomo
 
 using Images
 
+include("fourier_filter.jl")
 include("radon.jl")
+include("hanaro.jl")
 include("utils.jl")
 include("phantoms.jl")
 include("filtered_back_projection.jl")
+include("tomofilter.jl")
 include("tomoreader.jl")
 include("tomodata.jl")
 include("tomocor.jl")
 include("tomoview.jl")
 include("art.jl")
 include("recon.jl")
-include("tomofilter.jl")
+
 
 
 export read_nrimage,

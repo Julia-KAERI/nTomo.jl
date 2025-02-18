@@ -1,5 +1,5 @@
 # include("medianfilters.jl")
-include("tomofilter.jl")
+# include("tomofilter.jl")
 tomodata_process = (:dataread, :medianfiltering, :normalization, :sinogram, :pixel_normalization, :cor, :recon_fbp)
 reconstruction_method = (:recon_fbp, )
 # image_load=(:auto, :memory, :hdf5)

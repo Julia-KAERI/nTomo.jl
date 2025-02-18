@@ -54,9 +54,10 @@ function (p::MedianFilter)(img::Matrix{<:Real})
     return result
 end
 
-function (p::CVMedianFilter)(img::Matrix{<:Real})
-    result = mapwindow(median!, img, (p.ksize, p.ksize))
-    return result
+function (p::CVMedianFilter)(img)
+    p = OpenCV.medianBlur(OpenCV.Mat(stack([img, ], dims=1)), p.ksize)[1,:,:]
+    c, h, w = size(p)
+    return reshape(p, (h, w))
 end
 
 function (p::ThresholdMedianFilter)(img::Matrix{<:Real})

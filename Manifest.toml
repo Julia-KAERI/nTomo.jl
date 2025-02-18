@@ -159,11 +159,11 @@ version = "1.0.1+0"
 
 [[deps.CVext]]
 deps = ["Distributions", "OpenCV"]
-git-tree-sha1 = "21a96d636e760d78dc6c49ad215d109c0a2cd310"
+git-tree-sha1 = "1427bc381b0f4ac03c344dcca5d856a0253e9a56"
 repo-rev = "main"
 repo-url = "https://github.com/Julia-KAERI/CVext.jl.git"
 uuid = "f7e0511d-4206-40e2-b6ef-df9736370ae4"
-version = "0.1.0"
+version = "0.2.0"
 
 [[deps.Cairo]]
 deps = ["Cairo_jll", "Colors", "Glib_jll", "Graphics", "Libdl", "Pango_jll"]
