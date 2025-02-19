@@ -83,7 +83,8 @@ mutable struct TomoData <: AbstractTomoData
         dark = Array{Float32}(undef, (length(tomo.dark_files), Ny, Nx))
 
         
-        Threads.@threads for i ∈ eachindex(fns)
+        # Threads.@threads for i ∈ eachindex(fns)
+        for i ∈ eachindex(fns)
             fn = fns[i]
             if tomo.to_be_transposed
                 odata = (read_nrimage(joinpath(tomo.data_dir, fn), tomo.scale_down))'
