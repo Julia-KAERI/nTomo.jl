@@ -87,7 +87,7 @@ end
     
 #     S = fbp_preproc(sinogram, center, Ndet)
 #     N = size(S)[1]
-#     ffilter = fourier_filter2(N, filtername)
+#     ffilter = fourier_filter(N, filtername)
 #     angles = Float32.(-angles .* (pi/180.0) .+ pi/2.0)
 
 #     if mode == :cpu
@@ -123,10 +123,9 @@ function iradon_fbp(
     
     S = fbp_preproc(sinogram, center, Ndet)
     N = size(S)[1]
-    ffilter = fourier_filter2(N, filtername)
+    ffilter = fourier_filter(N, filtername)
     angles = Float32.(angles .* (pi/180.0) .+ pi/2.0)
 
-    
     return maincal_cpu(S, angles, ffilter, Ndet, center)
     
 end
@@ -142,7 +141,7 @@ function filtered_back_projection2(
     
     nAngles, Ndet = size(sinogram)
 
-    N = max(64, 2^ceil(Int64, log2(2 * Ndet)))
+    N = max(64, 2^ceil(Int32, log2(2 * Ndet)))
 
     angles = Float32.(- ths .* (pi/180.0) .+ pi/2.0)
     S = zeros(Float32, (N, nAngles))
@@ -170,7 +169,7 @@ function filtered_back_projection2(
 
     filtername = lowercase(filtername)
 
-    filter = fourier_filter2(N, filtername)
+    filter = fourier_filter(N, filtername)
     if filter === nothing
         error("$filtername is not supported")
     end

@@ -21,7 +21,7 @@ include("recon.jl")
 
 
 export read_nrimage,
-    fourier_filter2,
+    fourier_filter,
     phantom_shepp_logan, 
     _rotimg,
     radon, 

@@ -11,7 +11,7 @@ function read_tif(filepath)
 end
 
 """
-    read_nrimage(filepath, scald_down)
+`read_nrimage(filepath, scald_down)`
 
 Rean Hanaro NR or ENF file to return Matrix{UInt16}. The image is resized to the factor of 1/scale_down
 """

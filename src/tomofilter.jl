@@ -1,4 +1,5 @@
-using Statistics, Images, OpenCV, CVext
+using Statistics, Images, OpenCV
+#using CVext
  
 abstract type AbstractTomoFilter end
 
@@ -55,9 +56,9 @@ function (p::MedianFilter)(img::Matrix{<:Real})
 end
 
 function (p::CVMedianFilter)(img)
-    p = OpenCV.medianBlur(OpenCV.Mat(stack([img, ], dims=1)), p.ksize)[1,:,:]
+    p = OpenCV.medianBlur(OpenCV.Mat(stack([img, ], dims=1)), p.ksize)
     c, h, w = size(p)
-    return reshape(p, (h, w))
+    return reshape(p.data, (h, w))
 end
 
 function (p::ThresholdMedianFilter)(img::Matrix{<:Real})

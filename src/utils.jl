@@ -2,9 +2,9 @@ using Images, ColorSchemes, CairoMakie
 
 
 """
-    rescale(img::Matrix{T}, factor::Integer=1) where T<:Integer
+`rescale(img::Matrix{T}, factor::Integer=1) where T<:Integer`
 
-    `img` 의 크기를 각각 `1/factor` 로 줄인 2차원 배열을 반환한다. 
+img 의 크기를 각각 `1/factor` 로 줄인 2차원 배열을 반환한다. 
 """
 function rescale(img::Matrix{T}, factor::Integer=1) where T<:Integer
     @assert factor ∈ 1:5
@@ -31,7 +31,7 @@ end
 
 
 """
-    mat2gray(mat::Matrix{<:Real}, range::Union{Nothing, Tuple{Real, Real}} )
+`mat2gray(mat::Matrix{<:Real}, range::Union{Nothing, Tuple{Real, Real}})`
 
 Convert matrix to gray Image of Images.jl. 
 """
@@ -52,7 +52,7 @@ end
 
 
 """
-    colorize(img, color, scale, minval, maxval)
+`colorize(img, color, scale, minval, maxval)``
 
 Add color to 2D image. Color schemes uses ColorSchemes.jl[1].  
 
@@ -133,7 +133,7 @@ end
 
 
 """
-    image_profile(img, figsize, binsize, xlog, ylog)
+`image_profile(img, figsize, binsize, xlog, ylog)`
 
 
 Generate makie figure with two plots. The left one is image and the right one is histogram of it

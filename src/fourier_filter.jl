@@ -24,34 +24,34 @@ function hanning(N::Int64)
     return a .- (1.0-a) .* cos.((2*π/(N-1)) .* (Array(0:1:N-1)))
 end
 
-function fourier_filter(N::Int, filtername = "ramp")
-    filtername = lowercase(filtername)
+# function fourier_filter(N::Int, filtername = "ramp")
+#     filtername = lowercase(filtername)
     
-    if filtername ∉ filter_name 
-        return nothing
-    end
+#     if filtername ∉ filter_name 
+#         return nothing
+#     end
     
-    filter::Array{Float32, 1} = 1.0 .- abs.(range(-1, stop=1, length=N))
+#     filter::Array{Float32, 1} = 1.0 .- abs.(range(-1, stop=1, length=N))
     
-    if filtername == "ramp"
-    elseif filtername == "shepp-logan"
-        omega::Array{Float32, 1} = Float32.(π .* fftfreq(N)[2:N])
-        filter[2:N] .*= sin.(omega) ./ omega
+#     if filtername == "ramp"
+#     elseif filtername == "shepp-logan"
+#         omega::Array{Float32, 1} = Float32.(π .* fftfreq(N)[2:N])
+#         filter[2:N] .*= sin.(omega) ./ omega
         
-    elseif filtername == "cosine"
-        freq::Array{Float32, 1} = range(0, stop = π, length = N+1)[1:N]
-        cosine_filter::Array{Float32, 1} = fftshift(sin.(freq))
-        filter .*= cosine_filter
-    elseif filtername == "hamming"
-        filter .*= fftshift(hamming(N))
-    elseif filtername == "hann"
-        filter .*= fftshift(hanning(N))
-    end
+#     elseif filtername == "cosine"
+#         freq::Array{Float32, 1} = range(0, stop = π, length = N+1)[1:N]
+#         cosine_filter::Array{Float32, 1} = fftshift(sin.(freq))
+#         filter .*= cosine_filter
+#     elseif filtername == "hamming"
+#         filter .*= fftshift(hamming(N))
+#     elseif filtername == "hann"
+#         filter .*= fftshift(hanning(N))
+#     end
     
-    return filter
-end
+#     return filter
+# end
 
-function fourier_filter2(N::Int, filtername = "ramp")
+function fourier_filter(N::Int, filtername = "ramp")
     filtername = lowercase(filtername)
     
     if filtername ∉ filter_name 

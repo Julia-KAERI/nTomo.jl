@@ -22,9 +22,9 @@ function _rotimg(img::Matrix{T}, θ::AbstractFloat , c=Union{Real, Nothing}=noth
 end
 
 """
-    radon(img, angles, center)
+`radon(img, angles, center)`
 
-Output sinogram by radon transform. The axes of sinograms are (angles, pixels).
+Generate sinogram by radon transform. The axes of sinograms are (angles, pixels).
 """
 function radon(img::Matrix{T}, angles, center::Union{Real, Tuple, Nothing}=nothing) where T<:AbstractFloat
     result = zeros(T, (length(angles), size(img)[1]))

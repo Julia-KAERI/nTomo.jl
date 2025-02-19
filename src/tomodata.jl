@@ -149,7 +149,7 @@ mutable struct TomoData <: AbstractTomoData
             dark[i, :, :] = pdata[:,:]
         end
             
-        norm_dark /= length(tomo.white_files)
+        norm_dark /= length(tomo.dark_files)
 
         
         if isfiltered

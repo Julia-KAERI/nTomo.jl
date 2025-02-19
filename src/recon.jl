@@ -14,6 +14,17 @@ function filtered_back_projection(
 end
 
 
+"""
+`recon_fbp(tomo::TomoData, filtername = "hann", interpolation = "nearest", with_threads = true)`
+
+Reconstruct image by filtered back projection method.
+
+parameters
+==========
+tomo : tomodata
+filtername : one of ("ramp", "shepp-logan", "cosine", "hamming", "hann")
+interpolation : one of ("nearst", "linear")
+"""
 function recon_fbp(
     tomo::TomoData,
     filtername = "hann",
