@@ -45,9 +45,9 @@ function maincal_cpu(S, angles, ffilter, Ndet, center)
 
                 ind = round(Int64, rn)
                 if 1 ≤ ind ≤ Ndet
-                    m2 = round(Int64, m+dx)
+                    m2 = round(Int64, m)
                     #m2=m
-                    n2 = round(Int64, n+2*dx)
+                    n2 = round(Int64, n)
                     if (1 ≤ m2 ≤ Ndet) && (1≤ n2 ≤ Ndet)
                         @inbounds I[m2, n2] += A[ind]
                     end
@@ -58,6 +58,37 @@ function maincal_cpu(S, angles, ffilter, Ndet, center)
     end
     return I/pi/ (2 * length(angles))
 end
+
+# function maincal_cpu(S, angles, ffilter, Ndet, center)
+#     I = zeros(Float32,(Ndet, Ndet))
+#     # x = Float32.(range(-0.5, stop=0.5, length = Ndet) .+ (center/Ndet - 0.5))
+#     x = (collect(1:Ndet) .- center)./Ndet
+#     dx = (center - Ndet/2)
+#     Threads.@threads for t in eachindex(angles)
+#         A = real(ifft(fft(S[:, t]).*ffilter))[1:Ndet]
+#         cosθ, sinθ = cos(angles[t]), sin(angles[t])
+#         @inbounds for n in 1:Ndet
+#             yp = x[n]
+#             @inbounds for m in 1:Ndet
+#                 xp = x[m] 
+#                 rn = (xp*cosθ+yp*sinθ + 0.5)*Ndet 
+
+#                 ind = round(Int64, rn)
+#                 if 1 ≤ ind ≤ Ndet
+#                     m2 = round(Int64, m+dx)
+#                     #m2=m
+#                     n2 = round(Int64, n+2*dx)
+#                     if (1 ≤ m2 ≤ Ndet) && (1≤ n2 ≤ Ndet)
+#                         @inbounds I[m2, n2] += A[ind]
+#                     end
+                    
+#                 end
+#             end
+#         end
+#     end
+#     return I/pi/ (2 * length(angles))
+# end
+
 
 
 # function maincal_cuda!(Sa, angles, x, Ndet, Im)

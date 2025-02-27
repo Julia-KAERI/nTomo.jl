@@ -27,7 +27,7 @@ end
 Generate sinogram by radon transform. The axes of sinograms are (angles, pixels).
 """
 function radon(img::Matrix{T}, angles, center::Union{Real, Tuple, Nothing}=nothing) where T<:AbstractFloat
-    result = zeros(T, (length(angles), size(img)[1]))
+    result = zeros(T, (length(angles), size(img)[2]))
     Threads.@threads for i in eachindex(angles)
         rr = _rotimg(img, angles[i], center)
         @inbounds result[i, :] = sum(_rotimg(img, angles[i], center), dims=1)[1,:]

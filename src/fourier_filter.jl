@@ -60,21 +60,22 @@ function fourier_filter(N::Int, filtername = "ramp")
     
     n = [collect(1:2:(N/2)); collect((N/2-1):-2:1)]
     f = zeros(Float32, N)
-    f[1]=0.25
+    f[1]=0.25f0
     @inbounds for j in 2:2:N
         f[j] = -1/(π*n[j÷2])^2
     end
 
-    filter = 2*real(fft(f))
+    filter = Float32.(2*real(fft(f)))
 
     if filtername == "ramp"
+        filter =  fftshift(filter)
     elseif filtername == "shepp-logan"
-        omega::Array{Float32, 1} = Float32.(π .* fftfreq(N)[2:N])
+        omega = Float32.(π .* fftfreq(N)[2:N])
         filter[2:N] .*= sin.(omega) ./ omega
         
     elseif filtername == "cosine"
-        freq::Array{Float32, 1} = range(0, stop = π  , length = N+1)[1:N]
-        cosine_filter::Array{Float32, 1} = fftshift(sin.(freq))
+        freq = Float32.(range(0, stop = π  , length = N+1)[1:N])
+        cosine_filter = fftshift(sin.(freq))
         filter .*= cosine_filter
     elseif filtername == "hamming"
         filter .*= fftshift(hamming(N))
