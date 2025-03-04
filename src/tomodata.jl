@@ -169,66 +169,6 @@ mutable struct TomoData <: AbstractTomoData
     end
 end
 
-"""
-    tomosave(filepath, tomo::TomoData)
-
-TomoData can be saved as two format : hdf5(.h5 extension) or NRRD (.nrrd extionsion). Although hdf5 format file
-can be restored to original TomoData object, NRRD format file can't be restored. Informations generated in data
-processing is stored only in hdf5 format. 
-"""
-function tomosave(filepath, tomo::TomoData)
-    @assert !ispath(filepath)
-    _ext = splitext(filepath)[2]
-
-    @assert _ext ∈ (".h5", ".nrrd")
-
-    if _ext == ".h5"
-        fid = h5open(filepath, "w")
-        create_group(fid, "TomoData")
-        g = fid["TomoData"]
-        g["version"] = [t for t in tomo.version]
-        g["ths"] = tomo.ths
-        g["data"] =  tomo.data
-        g["white"] =  tomo.white
-        g["dark"] = tomo.dark
-        g["norm_data"] = tomo.norm_data 
-        g["norm_white"] =  tomo.norm_white 
-        g["norm_dark"] =  tomo.norm_dark
-
-        g["process"] = [String(t) for t in tomo.process]
-        g["cor"] = tomo.cor
-
-        close(fid)
-    else 
-        # save as nrrd format
-        save(filepath, tomo.data)
-    end
-end
-
-"""
-    tomoload(filepath)
-
-load TomoData from hdf5 format. The filepath must be ended with .h5
-"""
-function tomoload(filepath)
-    _ext = splitext(filepath)[2]
-    
-    @assert _ext ∈ [".h5", ]
-
-    fid = h5open(filepath)
-    _version = Tuple(read(fid, "TomoData/version"))
-    _ths = read(fid, "TomoData/ths")
-    _data = read(fid, "TomoData/data")
-    _white = read(fid, "TomoData/white")
-    _dark = read(fid, "TomoData/dark")
-    _norm_data = read(fid, "TomoData/norm_data")
-    _norm_white = read(fid, "TomoData/norm_white")
-    _norm_dark = read(fid, "TomoData/norm_dark")
-    _proc = [Symbol(t) for t in read(fid, "TomoData/process")]
-    _cor = read(fid, "TomoData/cor")
-    return TomoData(_version, _ths, _data, _white, _dark, _norm_data, _norm_white, _norm_dark, _proc, _cor)
-end
-
 
 
 function resize!(tomo::TomoData, factor::Integer = 1)
@@ -447,18 +387,3 @@ function tomo_cor(cor::Vector, y::Real)
     return cor[1]*y + cor[2]
 end
 
-
-function export_tif(tomo::TomoData, pixeltype, targetdir::String="", filenamebase="recon")
-    @assert :recon_fbp ∈ tomo.process
-    @assert pixeltype ∈ (UInt8, UInt16) 
-    if length(targetdir) > 0
-        @assert isdir(targetdir)
-    end
-
-    mv, Mv = extrema(tomo.data)
-    for i in 1:size(tomo.data)[3]
-        p = round.(pixeltype, (tomo.data[:,:, i] .- mv) .* (typemax(pixeltype)/(Mv - mv)))
-        fn = filenamebase * "_" * lpad(i, 4, "0") * ".tif"
-        save(joinpath(targetdir, fn), p)
-    end
-end

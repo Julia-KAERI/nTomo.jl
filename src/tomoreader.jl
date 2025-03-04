@@ -38,7 +38,7 @@ function get_file_list_hanaro(instrument, image_type, dir_data, dir_white, dir_d
                 push!(datafiles, (1, angle, fn))
             
             elseif instrument == :hanaro_nr 
-                angle = angle_step * parse(Int64, split(fn, "_")[3])
+                angle = angle_step * (parse(Int64, split(fn, "_")[3]) -1)
                 objstr = split(fn, "_")[1][end]
                 object = parse(Int64, objstr)
                 #push!(objset, object)

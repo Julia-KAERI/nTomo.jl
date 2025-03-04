@@ -17,6 +17,7 @@ include("tomocor.jl")
 include("tomoview.jl")
 include("art.jl")
 include("recon.jl")
+include("fileio.jl")
 
 
 
@@ -69,8 +70,12 @@ export read_nrimage,
     recon_fbp,
     recon_fbp!,
     recon_fbp_parts,
+    
+    sinosave,
+    sinoload,
     tomosave,
     tomoload, 
     export_tif 
+
 
 end # module nTomo
